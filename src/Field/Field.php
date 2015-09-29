@@ -216,7 +216,7 @@ class Field
           $this->shortcut,
           $this->getOptionMode(),
           $this->description ? $this->description : $this->name,
-          is_string($this->default) ? $this->default : null
+          is_string($this->default) || is_numeric($this->default) ? $this->default : null
         );
     }
 
@@ -249,7 +249,7 @@ class Field
     protected function getQuestionText()
     {
         $text = $this->name;
-        if (is_string($this->default)) {
+        if (is_string($this->default) || is_numeric($this->default)) {
             $text .= ' <question>[' . $this->default . ']</question>';
         }
         $text .= ': ';
