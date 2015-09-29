@@ -72,6 +72,15 @@ class Field
     protected $validators = [];
 
     /**
+     * The number of attempts the user can make to answer a question.
+     *
+     * @see Question::setMaxAttempts()
+     *
+     * @var int
+     */
+    protected $maxAttempts = 5;
+
+    /**
      * Normalizer callback.
      *
      * @var callable
@@ -237,7 +246,7 @@ class Field
 
             return $value;
         });
-        $question->setMaxAttempts(5);
+        $question->setMaxAttempts($this->maxAttempts);
 
         return $question;
     }

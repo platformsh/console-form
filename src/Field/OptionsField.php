@@ -2,9 +2,12 @@
 
 namespace Platformsh\ConsoleForm\Field;
 
+use Symfony\Component\Console\Question\ChoiceQuestion;
+
 class OptionsField extends Field
 {
     protected $options = [];
+    protected $asChoice = true;
 
     /**
      * {@inheritdoc}
@@ -33,9 +36,32 @@ class OptionsField extends Field
      */
     public function getAsQuestion()
     {
-        // Set up auto-completion for the question.
-        $question = parent::getAsQuestion();
-        $question->setAutocompleterValues($this->options);
+        if ($this->asChoice) {
+            $question = $this->getChoiceQuestion();
+        }
+        else {
+            $question = parent::getAsQuestion();
+            $question->setAutocompleterValues($this->options);
+        }
+
+        return $question;
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    protected function getChoiceQuestion()
+    {
+        // Translate the default into an array key.
+        $defaultKey = $this->default !== null
+            ? array_search($this->default, $this->options, true) : $this->default;
+
+        $question = new ChoiceQuestion(
+            $this->name . " (enter a number to choose): ",
+            $this->options,
+            $defaultKey !== false ? $defaultKey : null
+        );
+        $question->setMaxAttempts($this->maxAttempts);
 
         return $question;
     }
