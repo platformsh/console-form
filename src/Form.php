@@ -91,10 +91,11 @@ class Form
      * @param OutputInterface $output
      * @param QuestionHelper $helper
      *
-     * @return array|false
-     *   An array of normalized field values, or false if any of the input was
-     *   invalid. The array keys match those provided as the second argument to
-     *   self::addField().
+     * @throws \InvalidArgumentException if any of the input was invalid.
+     *
+     * @return array
+     *   An array of normalized field values. The array keys match those
+     *   provided as the second argument to self::addField().
      */
     public function resolveOptions(InputInterface $input, OutputInterface $output, QuestionHelper $helper)
     {
@@ -109,16 +110,14 @@ class Form
                     continue 2;
                 }
             }
-            $commandLineValue = $field->getValueFromInput($input, true);
+            $commandLineValue = $field->getValueFromInput($input);
             if ($commandLineValue !== null) {
                 $errors = $field->validate($commandLineValue);
                 if ($errors) {
-                    $output->writeln($errors);
-                    return false;
+                    throw new \InvalidArgumentException(implode("\n", $errors));
                 }
                 $values[$key] = $field->getFinalValue($commandLineValue);
-            }
-            else {
+            } else {
                 $userValue = $helper->ask($input, $output, $field->getAsQuestion());
                 $values[$key] = $field->getFinalValue($userValue);
             }

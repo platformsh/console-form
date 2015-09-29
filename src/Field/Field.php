@@ -293,19 +293,18 @@ class Field
      * Get the value the user entered for this field.
      *
      * @param InputInterface $input
-     * @param bool $explicitOnly
      *
      * @return mixed|null
      *   The value, or null if the user did not enter anything.
      */
-    public function getValueFromInput(InputInterface $input, $explicitOnly = false)
+    public function getValueFromInput(InputInterface $input)
     {
         $optionName = $this->getOptionName();
         if (!$input->hasOption($optionName)) {
             return null;
         }
-        $value = $input->getOption($optionName);
-        if ($this->isEmpty($value) || ($explicitOnly && $value === $this->getAsOption()->getDefault())) {
+        $value = $input->getParameterOption('--' . $optionName);
+        if ($this->isEmpty($value)) {
             return null;
         }
 
