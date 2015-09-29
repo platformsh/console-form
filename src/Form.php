@@ -109,19 +109,19 @@ class Form
                     continue 2;
                 }
             }
-            if ($input->hasOption($field->getOptionName())) {
-                $value = $input->getOption($field->getOptionName());
-                if (!$field->isEmpty($value)) {
-                    foreach ($field->validate($value) as $error) {
-                        $output->writeln("<error>$error</error>");
-                        return false;
-                    }
-                    $values[$key] = $field->getFinalValue($value);
-                    continue;
+            $commandLineValue = $field->getValueFromInput($input, true);
+            if ($commandLineValue !== null) {
+                $errors = $field->validate($commandLineValue);
+                if ($errors) {
+                    $output->writeln($errors);
+                    return false;
                 }
+                $values[$key] = $field->getFinalValue($commandLineValue);
             }
-            $value = $helper->ask($input, $output, $field->getAsQuestion());
-            $values[$key] = $field->getFinalValue($value);
+            else {
+                $userValue = $helper->ask($input, $output, $field->getAsQuestion());
+                $values[$key] = $field->getFinalValue($userValue);
+            }
         }
 
         if (!$valid) {

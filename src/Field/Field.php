@@ -2,6 +2,7 @@
 
 namespace Platformsh\ConsoleForm\Field;
 
+use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Question\Question;
 
@@ -277,6 +278,29 @@ class Field
     public function isEmpty($value)
     {
         return empty($value) && (!is_string($value) || !strlen($value));
+    }
+
+    /**
+     * Get the value the user entered for this field.
+     *
+     * @param InputInterface $input
+     * @param bool $explicitOnly
+     *
+     * @return mixed|null
+     *   The value, or null if the user did not enter anything.
+     */
+    public function getValueFromInput(InputInterface $input, $explicitOnly = false)
+    {
+        $optionName = $this->getOptionName();
+        if (!$input->hasOption($optionName)) {
+            return null;
+        }
+        $value = $input->getOption($optionName);
+        if ($this->isEmpty($value) || ($explicitOnly && $value === $this->getAsOption()->getDefault())) {
+            return null;
+        }
+
+        return $value;
     }
 
     /**
