@@ -99,7 +99,6 @@ class Form
      */
     public function resolveOptions(InputInterface $input, OutputInterface $output, QuestionHelper $helper)
     {
-        $valid = true;
         $values = [];
         foreach ($this->fields as $key => $field) {
             foreach ($field->getConditions() as $previousField => $condition) {
@@ -121,10 +120,6 @@ class Form
                 $userValue = $helper->ask($input, $output, $field->getAsQuestion());
                 $values[$key] = $field->getFinalValue($userValue);
             }
-        }
-
-        if (!$valid) {
-            return false;
         }
 
         return $values;
