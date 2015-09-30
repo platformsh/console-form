@@ -43,6 +43,9 @@ class FormTest extends \PHPUnit_Framework_TestCase
           'email' => new EmailAddressField('Email address', [
             'optionName' => 'mail',
           ]),
+          'with_default' => new Field('Field with default', [
+            'default' => 'defaultValue',
+          ]),
           'to_upper' => new Field('Normalized field', [
             'optionName' => 'to-upper',
             'description' => 'Input will be changed to upper case',
@@ -56,9 +59,6 @@ class FormTest extends \PHPUnit_Framework_TestCase
           'array' => new ArrayField('Array field', [
             'optionName' => 'array',
             'required' => false,
-          ]),
-          'with_default' => new Field('Field with default', [
-            'default' => 'defaultValue',
           ]),
         ];
         $this->form = Form::fromArray($this->fields);
@@ -176,6 +176,60 @@ class FormTest extends \PHPUnit_Framework_TestCase
         $validResult = $this->validResult;
         $validResult['to_upper'] = 'TESTSTRING';
         $this->assertEquals($validResult, $result, 'Input has been normalized');
+    }
+
+    public function testDependentField()
+    {
+        $helper = $this->getQuestionHelper();
+        $definition = new InputDefinition();
+        $this->form->addField(new Field('Dependency'), 'dependency');
+        $this->form->addField(new Field('Dependent', [
+            'conditions' => ['dependency' => 'doTrigger'],
+        ]), 'dependent');
+        $this->form->configureInputDefinition($definition);
+        $output = new NullOutput();
+
+        // Test without triggering the dependent field.
+        $input = new ArrayInput([
+            '--test' => $this->validString,
+            '--mail' => $this->validMail,
+            '--dependency' => 'doNotTrigger',
+            '--dependent' => 'value',
+        ], $definition);
+        $input->setInteractive(false);
+        $result = $this->form->resolveOptions($input, $output, $helper);
+        $validResult = $this->validResult + [
+            'dependency' => 'doNotTrigger'
+        ];
+        $this->assertEquals($validResult, $result, 'Dependent field does not appear');
+
+        // Test triggering the dependent field and providing a value.
+        $input = new ArrayInput([
+            '--test' => $this->validString,
+            '--mail' => $this->validMail,
+            '--dependency' => 'doTrigger',
+            '--dependent' => 'value',
+        ], $definition);
+        $input->setInteractive(false);
+        $result = $this->form->resolveOptions($input, $output, $helper);
+        $validResult = $this->validResult + [
+            'dependency' => 'doTrigger',
+            'dependent' => 'value',
+        ];
+        $this->assertEquals($validResult, $result, 'Dependent field does appear');
+
+        // Test triggering the dependent field and not providing a value.
+        $input = new ArrayInput([
+            '--test' => $this->validString,
+            '--mail' => $this->validMail,
+            '--dependency' => 'doTrigger',
+        ], $definition);
+        $input->setInteractive(false);
+        $this->setExpectedException(
+            '\\Platformsh\\ConsoleForm\\Exception\\MissingValueException',
+            '--dependent is required'
+        );
+        $this->form->resolveOptions($input, $output, $helper);
     }
 
     /**
