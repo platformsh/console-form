@@ -1,6 +1,7 @@
 {
   "name": "platformsh/console-form",
   "description": "A lightweight Symfony Console form system.",
+  "license": "MIT",
   "require": {
     "symfony/console": ">=2.5.2 <3"
   },
