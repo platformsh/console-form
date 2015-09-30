@@ -6,6 +6,7 @@ use Platformsh\ConsoleForm\Field\ArrayField;
 use Platformsh\ConsoleForm\Field\BooleanField;
 use Platformsh\ConsoleForm\Field\EmailAddressField;
 use Platformsh\ConsoleForm\Field\Field;
+use Platformsh\ConsoleForm\Field\OptionsField;
 use Platformsh\ConsoleForm\Form;
 use Symfony\Component\Console\Helper\FormatterHelper;
 use Symfony\Component\Console\Helper\HelperSet;
@@ -46,12 +47,6 @@ class FormTest extends \PHPUnit_Framework_TestCase
           'with_default' => new Field('Field with default', [
             'default' => 'defaultValue',
           ]),
-          'to_upper' => new Field('Normalized field', [
-            'optionName' => 'to-upper',
-            'description' => 'Input will be changed to upper case',
-            'normalizer' => 'strtoupper',
-            'required' => false,
-          ]),
           'bool' => new BooleanField('Boolean field', [
             'optionName' => 'bool',
             'required' => false,
@@ -65,7 +60,6 @@ class FormTest extends \PHPUnit_Framework_TestCase
         $this->validResult = [
           'test_field' => $this->validString,
           'email' => $this->validMail,
-          'to_upper' => null,
           'bool' => true,
           'array' => [],
           'with_default' => 'defaultValue',
@@ -163,6 +157,12 @@ class FormTest extends \PHPUnit_Framework_TestCase
     {
         $helper = $this->getQuestionHelper();
         $definition = new InputDefinition();
+        $this->form->addField(new Field('Normalized field', [
+            'optionName' => 'to-upper',
+            'description' => 'Input will be changed to upper case',
+            'normalizer' => 'strtoupper',
+            'required' => false,
+        ]), 'to_upper');
         $this->form->configureInputDefinition($definition);
         $output = new NullOutput();
 
@@ -173,8 +173,7 @@ class FormTest extends \PHPUnit_Framework_TestCase
         ], $definition);
         $input->setInteractive(false);
         $result = $this->form->resolveOptions($input, $output, $helper);
-        $validResult = $this->validResult;
-        $validResult['to_upper'] = 'TESTSTRING';
+        $validResult = $this->validResult + ['to_upper' => 'TESTSTRING'];
         $this->assertEquals($validResult, $result, 'Input has been normalized');
     }
 
@@ -230,6 +229,38 @@ class FormTest extends \PHPUnit_Framework_TestCase
             '--dependent is required'
         );
         $this->form->resolveOptions($input, $output, $helper);
+    }
+
+    public function testOptionsField()
+    {
+        $helper = $this->getQuestionHelper();
+        $definition = new InputDefinition();
+        $this->form->addField(new OptionsField('Options', [
+            'options' => ['option1', 'option2', 'option3'],
+        ]), 'options');
+        $this->form->configureInputDefinition($definition);
+        $output = new NullOutput();
+
+        // Test non-interactive input.
+        $input = new ArrayInput([
+            '--test' => $this->validString,
+            '--mail' => $this->validMail,
+            '--options' => 'option1',
+        ], $definition);
+        $input->setInteractive(false);
+        $result = $this->form->resolveOptions($input, $output, $helper);
+        $validResult = $this->validResult + ['options' => 'option1'];
+        $this->assertEquals($validResult, $result, 'Valid non-interactive option input');
+
+        // Test interactive input.
+        $input = new ArrayInput([
+            '--test' => $this->validString,
+            '--mail' => $this->validMail,
+        ], $definition);
+        $helper->setInputStream($this->getInputStream("\n\n\n1"));
+        $result = $this->form->resolveOptions($input, $output, $helper);
+        $validResult = $this->validResult + ['options' => 'option2'];
+        $this->assertEquals($validResult, $result, 'Valid interactive option input');
     }
 
     /**
