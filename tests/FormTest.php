@@ -263,6 +263,45 @@ class FormTest extends \PHPUnit_Framework_TestCase
         $this->assertEquals($validResult, $result, 'Valid interactive option input');
     }
 
+    public function testCustomValidator()
+    {
+        $helper = $this->getQuestionHelper();
+        $definition = new InputDefinition();
+        $this->form->addField(new Field('Test field', [
+            'optionName' => 'custom-validated',
+            'validator' => function ($value) {
+                return $value === 'valid' ? true : 'Not valid';
+            },
+        ]), 'custom_validated');
+        $this->form->configureInputDefinition($definition);
+        $output = new NullOutput();
+
+        $input = new ArrayInput([
+            '--test' => $this->validString,
+            '--mail' => $this->validMail,
+            '--custom-validated' => 'valid',
+        ], $definition);
+        $input->setInteractive(false);
+        $result = $this->form->resolveOptions($input, $output, $helper);
+        $validResult = $this->validResult + ['custom_validated' => 'valid'];
+        $this->assertEquals($validResult, $result);
+
+        $input = new ArrayInput([
+            '--test' => $this->validString,
+            '--mail' => $this->validMail,
+            '--custom-validated' => 'not valid',
+        ], $definition);
+        $input->setInteractive(false);
+        $this->setExpectedException('\\Platformsh\\ConsoleForm\\Exception\\InvalidValueException', 'Not valid');
+        $this->form->resolveOptions($input, $output, $helper);
+    }
+
+    public function testInvalidConfig()
+    {
+        $this->setExpectedException('InvalidArgumentException');
+        new Field('Test field', ['invalid' => 'invalid']);
+    }
+
     /**
      * @return QuestionHelper
      */
