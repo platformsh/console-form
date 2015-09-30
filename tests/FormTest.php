@@ -57,6 +57,9 @@ class FormTest extends \PHPUnit_Framework_TestCase
             'optionName' => 'array',
             'required' => false,
           ]),
+          'with_default' => new Field('Field with default', [
+            'default' => 'defaultValue',
+          ]),
         ];
         $this->form = Form::fromArray($this->fields);
         $this->validResult = [
@@ -65,6 +68,7 @@ class FormTest extends \PHPUnit_Framework_TestCase
           'to_upper' => null,
           'bool' => true,
           'array' => [],
+          'with_default' => 'defaultValue',
         ];
     }
 
@@ -88,7 +92,17 @@ class FormTest extends \PHPUnit_Framework_TestCase
           '--mail' => 'invalidMail',
         ], $definition);
         $input->setInteractive(false);
-        $this->setExpectedException('\\Platformsh\\ConsoleForm\\Exception\\FieldValueException');
+        $this->setExpectedException('\\Platformsh\\ConsoleForm\\Exception\\InvalidValueException');
+        $this->form->resolveOptions($input, $output, $helper);
+
+        $input = new ArrayInput([
+            '--test' => $this->validString,
+        ], $definition);
+        $input->setInteractive(false);
+        $this->setExpectedException(
+            '\\Platformsh\\ConsoleForm\\Exception\\MissingValueException',
+            '--mail is required'
+        );
         $this->form->resolveOptions($input, $output, $helper);
     }
 
@@ -100,7 +114,10 @@ class FormTest extends \PHPUnit_Framework_TestCase
         $input = new ArrayInput([], $definition);
         $output = new NullOutput();
 
-        $this->setExpectedException('RuntimeException');
+        $this->setExpectedException(
+            '\\Platformsh\\ConsoleForm\\Exception\\MissingValueException',
+            "'Test field' is required"
+        );
         $maxAttempts = 5;
         $helper->setInputStream($this->getInputStream(str_repeat("\n", $maxAttempts)));
         $this->form->resolveOptions($input, $output, $helper);
@@ -135,7 +152,7 @@ class FormTest extends \PHPUnit_Framework_TestCase
         $result = $this->form->resolveOptions($input, $output, $helper);
         $this->assertEquals($this->validResult, $result, 'Valid input passes');
 
-        $this->setExpectedException('\\Platformsh\\ConsoleForm\\Exception\\FieldValueException');
+        $this->setExpectedException('\\Platformsh\\ConsoleForm\\Exception\\InvalidValueException');
         $input = new ArrayInput(['--test' => 'invalidString'], $definition);
         $helper->setInputStream($this->getInputStream("{$this->validMail}\n"));
         $result = $this->form->resolveOptions($input, $output, $helper);

@@ -2,7 +2,8 @@
 
 namespace Platformsh\ConsoleForm;
 
-use Platformsh\ConsoleForm\Exception\FieldValueException;
+use Platformsh\ConsoleForm\Exception\InvalidValueException;
+use Platformsh\ConsoleForm\Exception\MissingValueException;
 use Platformsh\ConsoleForm\Field\Field;
 use Symfony\Component\Console\Helper\QuestionHelper;
 use Symfony\Component\Console\Input\InputDefinition;
@@ -96,7 +97,7 @@ class Form
      * @param OutputInterface $output
      * @param QuestionHelper $helper
      *
-     * @throws FieldValueException if any of the input was invalid.
+     * @throws InvalidValueException if any of the input was invalid.
      *
      * @return array
      *   An array of normalized field values. The array keys match those
@@ -118,13 +119,12 @@ class Form
             // Get the value from the command-line options.
             $value = $field->getValueFromInput($input);
             if ($value !== null) {
-                $errors = $field->validate($value);
-                if ($errors) {
-                    throw new FieldValueException(implode("\n", $errors));
-                }
+                $field->validate($value);
             } elseif ($input->isInteractive()) {
                 // Get the value interactively.
                 $value = $helper->ask($input, $output, $field->getAsQuestion());
+            } elseif ($field->isRequired()) {
+                throw new MissingValueException('--' . $field->getOptionName() . ' is required');
             }
 
             $values[$key] = $field->getFinalValue($value);

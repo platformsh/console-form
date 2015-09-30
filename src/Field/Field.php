@@ -2,6 +2,8 @@
 
 namespace Platformsh\ConsoleForm\Field;
 
+use Platformsh\ConsoleForm\Exception\InvalidValueException;
+use Platformsh\ConsoleForm\Exception\MissingValueException;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Question\Question;
@@ -175,31 +177,26 @@ class Field
     /**
      * Validate the field.
      *
+     * @throws InvalidValueException if the input was invalid.
+     *
      * @param mixed $value
      *   The user-entered value.
-     *
-     * @return string[]
-     *   An empty array indicates that validation passed.
      */
     public function validate($value)
     {
-        $errors = [];
-        if ($this->required && $this->isEmpty($value)) {
-            return ["'{$this->name}' is required"];
+        if ($value === null) {
+            return;
         }
 
         $normalized = $this->normalize($value);
         foreach ($this->validators as $validator) {
             $result = call_user_func($validator, $normalized);
             if (is_string($result)) {
-                $errors[] = $result;
-            }
-            elseif ($result === false) {
-                $errors[] = "Invalid value for '{$this->name}': $value";
+                throw new InvalidValueException($result);
+            } elseif ($result === false) {
+                throw new InvalidValueException("Invalid value for '{$this->name}': $value");
             }
         }
-
-        return $errors;
     }
 
     /**
@@ -238,15 +235,15 @@ class Field
     public function getAsQuestion()
     {
         $question = new Question($this->getQuestionText(), $this->default);
+        $question->setMaxAttempts($this->maxAttempts);
         $question->setValidator(function ($value) {
-            $result = $this->validate($value);
-            if (!empty($result)) {
-                throw new \RuntimeException(implode("\n", $result));
+            if ($this->isEmpty($value) && $this->isRequired()) {
+                throw new MissingValueException("'{$this->name}' is required");
             }
+            $this->validate($value);
 
             return $value;
         });
-        $question->setMaxAttempts($this->maxAttempts);
 
         return $question;
     }
@@ -295,7 +292,7 @@ class Field
      * @param InputInterface $input
      *
      * @return mixed|null
-     *   The value, or null if the user did not enter anything.
+     *   The normalized value, or null if the user did not enter anything.
      */
     public function getValueFromInput(InputInterface $input)
     {
@@ -308,7 +305,7 @@ class Field
             return null;
         }
 
-        return $value;
+        return $this->normalize($value);
     }
 
     /**
@@ -322,5 +319,25 @@ class Field
     {
         return $this->isEmpty($userValue)
             ? $this->default : $this->normalize($userValue);
+    }
+
+    /**
+     * Check whether the user must enter a value for this field.
+     *
+     * @return bool
+     */
+    public function isRequired()
+    {
+        return $this->required && !isset($this->default);
+    }
+
+    /**
+     * Get the name of the field.
+     *
+     * @return string
+     */
+    public function getName()
+    {
+        return $this->name;
     }
 }

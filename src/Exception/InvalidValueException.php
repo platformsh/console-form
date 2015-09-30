@@ -2,6 +2,6 @@
 
 namespace Platformsh\ConsoleForm\Exception;
 
-class FieldValueException extends \RuntimeException
+class InvalidValueException extends \RuntimeException
 {
 }
