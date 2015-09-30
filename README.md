@@ -34,15 +34,10 @@ class MyCommand extends Command
     protected function execute(InputInterface $input, OutputInterface $output)
     {
         $questionHelper = $this->getHelper('question');
-        $options = $this->form->resolveOptions($input, $output, $questionHelper);
-        if ($options === false) {
-            // Return an error code.
-            return 1;
-        }
+        $result = $this->form->resolveOptions($input, $output, $questionHelper);
 
-        $output->writeln("You specified: " . print_r($options, true));
-
-        return 0;
+        $output->writeln("Your name: " . $result['name']);
+        $output->writeln("Your email address: " . $result['mail']);
     }
 }
 ```
