@@ -2,6 +2,7 @@
 
 namespace Platformsh\ConsoleForm;
 
+use Platformsh\ConsoleForm\Exception\FieldValueException;
 use Platformsh\ConsoleForm\Field\Field;
 use Symfony\Component\Console\Helper\QuestionHelper;
 use Symfony\Component\Console\Input\InputDefinition;
@@ -91,7 +92,7 @@ class Form
      * @param OutputInterface $output
      * @param QuestionHelper $helper
      *
-     * @throws \InvalidArgumentException if any of the input was invalid.
+     * @throws FieldValueException if any of the input was invalid.
      *
      * @return array
      *   An array of normalized field values. The array keys match those
@@ -109,17 +110,20 @@ class Form
                     continue 2;
                 }
             }
-            $commandLineValue = $field->getValueFromInput($input);
-            if ($commandLineValue !== null) {
-                $errors = $field->validate($commandLineValue);
+
+            // Get the value from the command-line options.
+            $value = $field->getValueFromInput($input);
+            if ($value !== null) {
+                $errors = $field->validate($value);
                 if ($errors) {
-                    throw new \InvalidArgumentException(implode("\n", $errors));
+                    throw new FieldValueException(implode("\n", $errors));
                 }
-                $values[$key] = $field->getFinalValue($commandLineValue);
-            } else {
-                $userValue = $helper->ask($input, $output, $field->getAsQuestion());
-                $values[$key] = $field->getFinalValue($userValue);
+            } elseif ($input->isInteractive()) {
+                // Get the value interactively.
+                $value = $helper->ask($input, $output, $field->getAsQuestion());
             }
+
+            $values[$key] = $field->getFinalValue($value);
         }
 
         return $values;

@@ -76,20 +76,20 @@ class FormTest extends \PHPUnit_Framework_TestCase
         $output = new NullOutput();
 
         $input = new ArrayInput([
-          '--test' => 'invalidString',
-          '--mail' => 'invalidMail',
-        ], $definition);
-        $input->setInteractive(false);
-        $result = $this->form->resolveOptions($input, $output, $helper);
-        $this->assertFalse($result, 'Invalid input fails');
-
-        $input = new ArrayInput([
-          '--test' => $this->validString,
-          '--mail' => $this->validMail,
+            '--test' => $this->validString,
+            '--mail' => $this->validMail,
         ], $definition);
         $input->setInteractive(false);
         $result = $this->form->resolveOptions($input, $output, $helper);
         $this->assertEquals($this->validResult, $result, 'Valid input passes');
+
+        $input = new ArrayInput([
+          '--test' => 'invalidString',
+          '--mail' => 'invalidMail',
+        ], $definition);
+        $input->setInteractive(false);
+        $this->setExpectedException('\\Platformsh\\ConsoleForm\\Exception\\FieldValueException');
+        $this->form->resolveOptions($input, $output, $helper);
     }
 
     public function testWrongInteractiveInput()
@@ -100,7 +100,7 @@ class FormTest extends \PHPUnit_Framework_TestCase
         $input = new ArrayInput([], $definition);
         $output = new NullOutput();
 
-        $this->setExpectedException('RuntimeException', 'is required');
+        $this->setExpectedException('RuntimeException');
         $maxAttempts = 5;
         $helper->setInputStream($this->getInputStream(str_repeat("\n", $maxAttempts)));
         $this->form->resolveOptions($input, $output, $helper);
@@ -128,17 +128,18 @@ class FormTest extends \PHPUnit_Framework_TestCase
         $this->form->configureInputDefinition($definition);
         $output = new NullOutput();
 
-        $input = new ArrayInput(['--test' => 'invalidString'], $definition);
-        $helper->setInputStream($this->getInputStream("{$this->validMail}\n"));
-        $result = $this->form->resolveOptions($input, $output, $helper);
-        $this->assertEquals(false, $result, 'Invalid input fails');
-
         $input = new ArrayInput(['--mail' => $this->validMail], $definition);
         $helper->setInputStream($this->getInputStream(
           "{$this->validString}\n" .  str_repeat("\n", count($this->fields) - 1)
         ));
         $result = $this->form->resolveOptions($input, $output, $helper);
         $this->assertEquals($this->validResult, $result, 'Valid input passes');
+
+        $this->setExpectedException('\\Platformsh\\ConsoleForm\\Exception\\FieldValueException');
+        $input = new ArrayInput(['--test' => 'invalidString'], $definition);
+        $helper->setInputStream($this->getInputStream("{$this->validMail}\n"));
+        $result = $this->form->resolveOptions($input, $output, $helper);
+        $this->assertEquals(false, $result, 'Invalid input fails');
     }
 
     public function testNormalizedInput()
