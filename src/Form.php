@@ -38,6 +38,10 @@ class Form
      */
     public function getField($key)
     {
+        if (!isset($this->fields[$key])) {
+            return false;
+        }
+
         return $this->fields[$key];
     }
 
