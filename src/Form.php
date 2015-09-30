@@ -107,13 +107,8 @@ class Form
     {
         $values = [];
         foreach ($this->fields as $key => $field) {
-            foreach ($field->getConditions() as $previousField => $condition) {
-                $previousFieldObject = $this->getField($previousField);
-                if ($previousFieldObject === false
-                    || !isset($values[$previousField])
-                    || !$previousFieldObject->matchesCondition($values[$previousField], $condition)) {
-                    continue 2;
-                }
+            if (!$this->includeField($field, $values)) {
+                continue;
             }
 
             // Get the value from the command-line options.
@@ -131,5 +126,27 @@ class Form
         }
 
         return $values;
+    }
+
+    /**
+     * Determine whether the field should be included.
+     *
+     * @param Field $field
+     * @param array $previousValues
+     *
+     * @return bool
+     */
+    public function includeField(Field $field, array $previousValues)
+    {
+        foreach ($field->getConditions() as $previousField => $condition) {
+            $previousFieldObject = $this->getField($previousField);
+            if ($previousFieldObject === false
+                || !isset($previousValues[$previousField])
+                || !$previousFieldObject->matchesCondition($previousValues[$previousField], $condition)) {
+                return false;
+            }
+        }
+
+        return true;
     }
 }
