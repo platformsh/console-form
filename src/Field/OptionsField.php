@@ -26,7 +26,7 @@ class OptionsField extends Field
      */
     public function matchesCondition($userValue, $condition)
     {
-        return is_array($userValue)
+        return is_array($condition)
           ? in_array($userValue, $condition)
           : $userValue === $condition;
     }

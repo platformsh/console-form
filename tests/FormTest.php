@@ -231,6 +231,47 @@ class FormTest extends \PHPUnit_Framework_TestCase
         $this->form->resolveOptions($input, $output, $helper);
     }
 
+    public function testDependentOnOptionsField()
+    {
+        $helper = $this->getQuestionHelper();
+        $definition = new InputDefinition();
+        $this->form->addField(new OptionsField('Dependency', [
+            'options' => ['doTrigger', 'doTrigger2', 'doNotTrigger'],
+        ]), 'dependency');
+        $this->form->addField(new Field('Dependent', [
+            'conditions' => ['dependency' => ['doTrigger', 'doTrigger2']],
+        ]), 'dependent');
+        $this->form->configureInputDefinition($definition);
+        $output = new NullOutput();
+
+        // Test without triggering the dependent field.
+        $input = new ArrayInput([
+            '--test' => $this->validString,
+            '--mail' => $this->validMail,
+            '--dependency' => 'doNotTrigger',
+            '--dependent' => 'value',
+        ], $definition);
+        $input->setInteractive(false);
+        $result = $this->form->resolveOptions($input, $output, $helper);
+        $validResult = $this->validResult + ['dependency' => 'doNotTrigger'];
+        $this->assertEquals($validResult, $result, 'Dependent field does not appear');
+
+        // Test triggering the dependent field and providing a value.
+        $input = new ArrayInput([
+            '--test' => $this->validString,
+            '--mail' => $this->validMail,
+            '--dependency' => 'doTrigger',
+            '--dependent' => 'value',
+        ], $definition);
+        $input->setInteractive(false);
+        $result = $this->form->resolveOptions($input, $output, $helper);
+        $validResult = $this->validResult + [
+                'dependency' => 'doTrigger',
+                'dependent' => 'value',
+            ];
+        $this->assertEquals($validResult, $result, 'Dependent field does appear');
+    }
+
     public function testOptionsField()
     {
         $helper = $this->getQuestionHelper();
