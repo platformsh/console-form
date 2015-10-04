@@ -83,13 +83,13 @@ class Field
     protected $maxAttempts = 5;
 
     /**
-     * Normalizer callback.
+     * Normalizer callbacks.
      *
-     * @var callable
-     *   A callback which takes one argument (the user input) and returns it
-     *   normalized.
+     * @var callable[]
+     *   An array of callbacks. Each callback takes one argument (the user
+     *   input) and returns it normalized.
      */
-    protected $normalizer;
+    protected $normalizers = [];
 
     /**
      * The conditions under which the field will be displayed or used.
@@ -122,6 +122,10 @@ class Field
             switch ($key) {
                 case 'validator':
                     $this->validators[] = $value;
+                    break;
+
+                case 'normalizer':
+                    $this->normalizers[] = $value;
                     break;
 
                 default:
@@ -167,11 +171,14 @@ class Field
      */
     protected function normalize($value)
     {
-        if ($this->normalizer === null || $value === null) {
+        if ($value === null) {
             return $value;
         }
+        foreach ($this->normalizers as $normalizer) {
+            $value = $normalizer($value);
+        }
 
-        return call_user_func($this->normalizer, $value);
+        return $value;
     }
 
     /**
