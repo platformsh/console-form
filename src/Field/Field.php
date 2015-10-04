@@ -96,8 +96,6 @@ class Field
      *
      * @todo this should not be the field's responsibility
      *
-     * @setter self::setConditions()
-     *
      * @var array
      *   An array mapping field keys (referencing other fields in the form) to
      *   user input. If any conditions are defined, all of them must match the
@@ -151,9 +149,7 @@ class Field
      * Test whether the user's input matches the provided condition value.
      *
      * @param mixed $userValue
-     *   The user-entered value.
      * @param mixed $condition
-     *   The condition value, as provided in self::setConditions().
      *
      * @return bool
      */
