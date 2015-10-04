@@ -4,7 +4,7 @@ A lightweight form system for Symfony Console commands.
 Commands can define forms which can be used both via command-line options and
 via interactive input.
 
-[![Build Status](https://travis-ci.org/platformsh/console-form.svg?branch=master)](https://travis-ci.org/platformsh/console-form)
+[![Build Status](https://travis-ci.org/pjcdawkins/console-form.svg?branch=master)](https://travis-ci.org/pjcdawkins/console-form)
 
 ## Example
 ```php
