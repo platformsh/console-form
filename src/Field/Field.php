@@ -226,7 +226,7 @@ class Field
           $this->shortcut,
           $this->getOptionMode(),
           $this->description ? $this->description : $this->name,
-          is_string($this->default) || is_numeric($this->default) ? $this->default : null
+          $this->default
         );
     }
 
@@ -259,12 +259,30 @@ class Field
     protected function getQuestionText()
     {
         $text = $this->name;
-        if (is_string($this->default) || is_numeric($this->default)) {
-            $text .= ' <question>[' . $this->default . ']</question>';
+        if ($this->default !== null) {
+            $text .= ' <question>[default: ' . $this->formatDefault($this->default) . ']</question>';
         }
         $text .= ': ';
 
         return $text;
+    }
+
+    /**
+     * Get the default as a string.
+     *
+     * Borrowed from \Symfony\Component\Console\Descriptor::formatDefaultValue().
+     *
+     * @param mixed $default
+     *
+     * @return string
+     */
+    protected function formatDefault($default)
+    {
+        if (PHP_VERSION_ID < 50400) {
+            return str_replace('\/', '/', json_encode($default));
+        }
+
+        return json_encode($default, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE);
     }
 
     /**
