@@ -112,7 +112,7 @@ class Form
             }
 
             // Get the value from the command-line options.
-            $value = $field->getValueFromInput($input);
+            $value = $field->getValueFromInput($input, false);
             if ($value !== null) {
                 $field->validate($value);
             } elseif ($input->isInteractive()) {

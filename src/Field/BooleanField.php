@@ -22,7 +22,7 @@ class BooleanField extends Field
      */
     protected function normalize($value)
     {
-        $false = ['false', '0', 'no'];
+        $false = ['false', '0', 'no', 'n'];
 
         return !in_array(strtolower($value), $false);
     }

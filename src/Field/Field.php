@@ -311,11 +311,13 @@ class Field
      * Get the value the user entered for this field.
      *
      * @param InputInterface $input
+     * @param bool $normalize
      *
      * @return mixed|null
-     *   The normalized value, or null if the user did not enter anything.
+     *   The raw value, or null if the user did not enter anything. The value
+     *   will be normalized if $normalize is set.
      */
-    public function getValueFromInput(InputInterface $input)
+    public function getValueFromInput(InputInterface $input, $normalize = true)
     {
         $optionName = $this->getOptionName();
         if (!$input->hasOption($optionName)) {
@@ -326,7 +328,7 @@ class Field
             return null;
         }
 
-        return $this->normalize($value);
+        return $normalize ? $this->normalize($value) : $value;
     }
 
     /**
