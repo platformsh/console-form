@@ -3,7 +3,7 @@
   "description": "A lightweight Symfony Console form system.",
   "license": "MIT",
   "require": {
-    "symfony/console": ">=2.5.2 <3"
+    "symfony/console": "^3.0 || ^2.6"
   },
   "require-dev": {
     "phpunit/phpunit": "~4"
