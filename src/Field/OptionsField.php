@@ -10,6 +10,16 @@ class OptionsField extends Field
     protected $asChoice = true;
 
     /**
+     * A callback used to calculate dynamic options.
+     *
+     * The callback accepts an array of values entered previously for other form
+     * fields. It returns the new options, as an array.
+     *
+     * @var callable
+     */
+    protected $optionsCallback;
+
+    /**
      * {@inheritdoc}
      */
     public function __construct($name, array $config = [])
@@ -64,5 +74,16 @@ class OptionsField extends Field
         $question->setMaxAttempts($this->maxAttempts);
 
         return $question;
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    public function onChange(array $previousValues)
+    {
+        if (isset($this->optionsCallback)) {
+            $callback = $this->optionsCallback;
+            $this->options = $callback($previousValues);
+        }
     }
 }

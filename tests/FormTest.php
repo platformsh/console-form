@@ -47,6 +47,11 @@ class FormTest extends \PHPUnit_Framework_TestCase
           'with_default' => new Field('Field with default', [
             'default' => 'defaultValue',
           ]),
+          'with_dynamic_default' => new Field('Field with dynamic default', [
+            'defaultCallback' => function (array $values) {
+                return $values['test_field'];
+            },
+          ]),
           'bool' => new BooleanField('Boolean field', [
             'optionName' => 'bool',
             'required' => false,
@@ -63,6 +68,7 @@ class FormTest extends \PHPUnit_Framework_TestCase
           'bool' => true,
           'array' => [],
           'with_default' => 'defaultValue',
+          'with_dynamic_default' => $this->validString,
         ];
     }
 
@@ -126,7 +132,7 @@ class FormTest extends \PHPUnit_Framework_TestCase
         $output = new NullOutput();
 
         $helper->setInputStream($this->getInputStream(
-          "{$this->validString}\n{$this->validMail}\n" . str_repeat("\n", count($this->fields) - 2)
+          "{$this->validString}\n{$this->validMail}\n" . str_repeat("\n", count($this->form->getFields()) - 2)
         ));
         $result = $this->form->resolveOptions($input, $output, $helper);
         $this->assertEquals($this->validResult, $result, 'Valid input passes');
@@ -141,7 +147,7 @@ class FormTest extends \PHPUnit_Framework_TestCase
 
         $input = new ArrayInput(['--mail' => $this->validMail], $definition);
         $helper->setInputStream($this->getInputStream(
-          "{$this->validString}\n" .  str_repeat("\n", count($this->fields) - 1)
+          "{$this->validString}\n" .  str_repeat("\n", count($this->form->getFields()) - 1)
         ));
         $result = $this->form->resolveOptions($input, $output, $helper);
         $this->assertEquals($this->validResult, $result, 'Valid input passes');
@@ -276,6 +282,7 @@ class FormTest extends \PHPUnit_Framework_TestCase
     {
         $helper = $this->getQuestionHelper();
         $definition = new InputDefinition();
+        $countFieldsBefore = count($this->form->getFields());
         $this->form->addField(new OptionsField('Options', [
             'options' => ['option1', 'option2', 'option3'],
         ]), 'options');
@@ -298,7 +305,7 @@ class FormTest extends \PHPUnit_Framework_TestCase
             '--test' => $this->validString,
             '--mail' => $this->validMail,
         ], $definition);
-        $helper->setInputStream($this->getInputStream("\n\n\n1"));
+        $helper->setInputStream($this->getInputStream(str_repeat("\n", $countFieldsBefore) . '1'));
         $result = $this->form->resolveOptions($input, $output, $helper);
         $validResult = $this->validResult + ['options' => 'option2'];
         $this->assertEquals($validResult, $result, 'Valid interactive option input');

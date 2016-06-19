@@ -61,6 +61,16 @@ class Field
     protected $default;
 
     /**
+     * A callback used to calculate a dynamic default.
+     *
+     * The callback accepts an array of values entered previously for other form
+     * fields. It returns the new default.
+     *
+     * @var callable
+     */
+    protected $defaultCallback;
+
+    /**
      * Validator callbacks.
      *
      * @see self::validate()
@@ -365,5 +375,18 @@ class Field
     public function getName()
     {
         return $this->name;
+    }
+
+    /**
+     * React to a change in user input.
+     *
+     * @param array $previousValues
+     */
+    public function onChange(array $previousValues)
+    {
+       if (isset($this->defaultCallback)) {
+           $callback = $this->defaultCallback;
+           $this->default = $callback($previousValues);
+       }
     }
 }

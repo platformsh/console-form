@@ -107,6 +107,8 @@ class Form
     {
         $values = [];
         foreach ($this->fields as $key => $field) {
+            $field->onChange($values);
+
             if (!$this->includeField($field, $values)) {
                 continue;
             }
