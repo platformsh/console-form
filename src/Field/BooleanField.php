@@ -34,7 +34,11 @@ class BooleanField extends Field
             return true;
         }
         else {
-            throw new InvalidValueException("Invalid value for '{$this->name}': $value");
+            throw new InvalidValueException(sprintf(
+                "Invalid value for '%s': %s (expected 1, 0, true, or false)",
+                $this->name,
+                $value
+            ));
         }
     }
 }
