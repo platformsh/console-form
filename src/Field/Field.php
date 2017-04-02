@@ -127,22 +127,37 @@ class Field
     {
         $this->name = $name;
         foreach ($config as $key => $value) {
-            switch ($key) {
-                case 'validator':
-                    $this->validators[] = $value;
-                    break;
-
-                case 'normalizer':
-                    $this->normalizers[] = $value;
-                    break;
-
-                default:
-                    if (!property_exists($this, $key)) {
-                        throw new \InvalidArgumentException("Unrecognized config key: $key");
-                    }
-                    $this->$key = $value;
-            }
+            $this->set($key, $value);
         }
+    }
+
+    /**
+     * Set or modify a configuration value.
+     *
+     * @param string $key
+     * @param mixed  $value
+     *
+     * @return self
+     */
+    public function set($key, $value)
+    {
+        switch ($key) {
+            case 'validator':
+                $this->validators[] = $value;
+                break;
+
+            case 'normalizer':
+                $this->normalizers[] = $value;
+                break;
+
+            default:
+                if (!property_exists($this, $key)) {
+                    throw new \InvalidArgumentException("Unrecognized config key: $key");
+                }
+                $this->$key = $value;
+        }
+
+        return $this;
     }
 
     /**
