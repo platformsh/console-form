@@ -350,6 +350,26 @@ class FormTest extends \PHPUnit_Framework_TestCase
         new Field('Test field', ['invalid' => 'invalid']);
     }
 
+    public function testOverrideField()
+    {
+      $fields = $this->fields;
+      $validResult = $this->validResult;
+      $validResult['test_field'] = 'Default result for test_field';
+      $validResult['with_dynamic_default'] = $validResult['test_field'];
+      $validResult['email'] = 'test-default@example.com';
+      $fields['test_field']->set('default', $validResult['test_field']);
+      $fields['email']->set('default', $validResult['email']);
+
+      $definition = new InputDefinition();
+      $this->form = Form::fromArray($fields);
+      $this->form->configureInputDefinition($definition);
+
+      $input = new ArrayInput([], $definition);
+      $input->setInteractive(false);
+      $result = $this->form->resolveOptions($input, new NullOutput(), $this->getQuestionHelper());
+      $this->assertEquals($validResult, $result, 'Empty input passes');
+    }
+
     /**
      * @return QuestionHelper
      */
