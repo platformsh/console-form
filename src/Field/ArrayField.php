@@ -15,7 +15,7 @@ class ArrayField extends Field
     {
         $question = parent::getAsQuestion();
         $question->setNormalizer(function ($value) {
-            return is_array($value) ? $value : preg_split('/[,;\n] */', $value);
+            return is_array($value) ? $value : array_filter(preg_split('/[,;\n] */', $value), 'strlen');
         });
 
         return $question;
@@ -35,5 +35,21 @@ class ArrayField extends Field
     public function getOptionMode()
     {
         return InputOption::VALUE_IS_ARRAY | InputOption::VALUE_REQUIRED;
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    public function isEmpty($value)
+    {
+        return empty($value);
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    public function isRequired()
+    {
+        return $this->required && empty($this->default);
     }
 }
