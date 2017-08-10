@@ -2,6 +2,7 @@
 
 namespace Platformsh\ConsoleForm\Tests;
 
+use PHPUnit\Framework\TestCase;
 use Platformsh\ConsoleForm\Field\ArrayField;
 use Platformsh\ConsoleForm\Field\BooleanField;
 use Platformsh\ConsoleForm\Field\EmailAddressField;
@@ -15,7 +16,7 @@ use Symfony\Component\Console\Input\ArrayInput;
 use Symfony\Component\Console\Input\InputDefinition;
 use Symfony\Component\Console\Output\NullOutput;
 
-class FormTest extends \PHPUnit_Framework_TestCase
+class FormTest extends TestCase
 {
     /** @var Form */
     protected $form;
@@ -92,14 +93,14 @@ class FormTest extends \PHPUnit_Framework_TestCase
           '--mail' => 'invalidMail',
         ], $definition);
         $input->setInteractive(false);
-        $this->setExpectedException('\\Platformsh\\ConsoleForm\\Exception\\InvalidValueException');
+        $this->expectException('\\Platformsh\\ConsoleForm\\Exception\\InvalidValueException');
         $this->form->resolveOptions($input, $output, $helper);
 
         $input = new ArrayInput([
             '--test' => $this->validString,
         ], $definition);
         $input->setInteractive(false);
-        $this->setExpectedException(
+        $this->expectException(
             '\\Platformsh\\ConsoleForm\\Exception\\MissingValueException',
             '--mail is required'
         );
@@ -114,7 +115,7 @@ class FormTest extends \PHPUnit_Framework_TestCase
         $input = new ArrayInput([], $definition);
         $output = new NullOutput();
 
-        $this->setExpectedException(
+        $this->expectException(
             '\\Platformsh\\ConsoleForm\\Exception\\MissingValueException',
             "'Test field' is required"
         );
@@ -152,7 +153,7 @@ class FormTest extends \PHPUnit_Framework_TestCase
         $result = $this->form->resolveOptions($input, $output, $helper);
         $this->assertEquals($this->validResult, $result, 'Valid input passes');
 
-        $this->setExpectedException('\\Platformsh\\ConsoleForm\\Exception\\InvalidValueException');
+        $this->expectException('\\Platformsh\\ConsoleForm\\Exception\\InvalidValueException');
         $input = new ArrayInput(['--test' => 'invalidString'], $definition);
         $helper->setInputStream($this->getInputStream("{$this->validMail}\n"));
         $result = $this->form->resolveOptions($input, $output, $helper);
@@ -230,7 +231,7 @@ class FormTest extends \PHPUnit_Framework_TestCase
             '--dependency' => 'doTrigger',
         ], $definition);
         $input->setInteractive(false);
-        $this->setExpectedException(
+        $this->expectException(
             '\\Platformsh\\ConsoleForm\\Exception\\MissingValueException',
             '--dependent is required'
         );
@@ -340,13 +341,13 @@ class FormTest extends \PHPUnit_Framework_TestCase
             '--custom-validated' => 'not valid',
         ], $definition);
         $input->setInteractive(false);
-        $this->setExpectedException('\\Platformsh\\ConsoleForm\\Exception\\InvalidValueException', 'Not valid');
+        $this->expectException('\\Platformsh\\ConsoleForm\\Exception\\InvalidValueException', 'Not valid');
         $this->form->resolveOptions($input, $output, $helper);
     }
 
     public function testInvalidConfig()
     {
-        $this->setExpectedException('InvalidArgumentException');
+        $this->expectException('InvalidArgumentException');
         new Field('Test field', ['invalid' => 'invalid']);
     }
 
