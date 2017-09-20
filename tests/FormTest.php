@@ -3,6 +3,8 @@
 namespace Platformsh\ConsoleForm\Tests;
 
 use PHPUnit\Framework\TestCase;
+use Platformsh\ConsoleForm\Exception\InvalidValueException;
+use Platformsh\ConsoleForm\Exception\MissingValueException;
 use Platformsh\ConsoleForm\Field\ArrayField;
 use Platformsh\ConsoleForm\Field\BooleanField;
 use Platformsh\ConsoleForm\Field\EmailAddressField;
@@ -100,10 +102,8 @@ class FormTest extends TestCase
             '--test' => $this->validString,
         ], $definition);
         $input->setInteractive(false);
-        $this->expectException(
-            '\\Platformsh\\ConsoleForm\\Exception\\MissingValueException',
-            '--mail is required'
-        );
+        $this->expectException(MissingValueException::class);
+        $this->expectExceptionMessage('--mail is required');
         $this->form->resolveOptions($input, $output, $helper);
     }
 
@@ -115,12 +115,10 @@ class FormTest extends TestCase
         $input = new ArrayInput([], $definition);
         $output = new NullOutput();
 
-        $this->expectException(
-            '\\Platformsh\\ConsoleForm\\Exception\\MissingValueException',
-            "'Test field' is required"
-        );
+        $this->expectException(MissingValueException::class);
+        $this->expectExceptionMessage("'Test field' is required");
         $maxAttempts = 5;
-        $helper->setInputStream($this->getInputStream(str_repeat("\n", $maxAttempts)));
+        $input->setStream($this->getInputStream(str_repeat("\n", $maxAttempts)));
         $this->form->resolveOptions($input, $output, $helper);
     }
 
@@ -132,8 +130,8 @@ class FormTest extends TestCase
         $input = new ArrayInput([], $definition);
         $output = new NullOutput();
 
-        $helper->setInputStream($this->getInputStream(
-          "{$this->validString}\n{$this->validMail}\n" . str_repeat("\n", count($this->form->getFields()) - 2)
+        $input->setStream($this->getInputStream(
+            "{$this->validString}\n{$this->validMail}\n" . str_repeat("\n", count($this->form->getFields()) - 2)
         ));
         $result = $this->form->resolveOptions($input, $output, $helper);
         $this->assertEquals($this->validResult, $result, 'Valid input passes');
@@ -147,15 +145,15 @@ class FormTest extends TestCase
         $output = new NullOutput();
 
         $input = new ArrayInput(['--mail' => $this->validMail], $definition);
-        $helper->setInputStream($this->getInputStream(
+        $input->setStream($this->getInputStream(
           "{$this->validString}\n" .  str_repeat("\n", count($this->form->getFields()) - 1)
         ));
         $result = $this->form->resolveOptions($input, $output, $helper);
         $this->assertEquals($this->validResult, $result, 'Valid input passes');
 
-        $this->expectException('\\Platformsh\\ConsoleForm\\Exception\\InvalidValueException');
+        $this->expectException(InvalidValueException::class);
         $input = new ArrayInput(['--test' => 'invalidString'], $definition);
-        $helper->setInputStream($this->getInputStream("{$this->validMail}\n"));
+        $input->setStream($this->getInputStream("{$this->validMail}\n"));
         $result = $this->form->resolveOptions($input, $output, $helper);
         $this->assertEquals(false, $result, 'Invalid input fails');
     }
@@ -231,10 +229,8 @@ class FormTest extends TestCase
             '--dependency' => 'doTrigger',
         ], $definition);
         $input->setInteractive(false);
-        $this->expectException(
-            '\\Platformsh\\ConsoleForm\\Exception\\MissingValueException',
-            '--dependent is required'
-        );
+        $this->expectException(MissingValueException::class);
+        $this->expectExceptionMessage('--dependent is required');
         $this->form->resolveOptions($input, $output, $helper);
     }
 
@@ -287,6 +283,11 @@ class FormTest extends TestCase
         $this->form->addField(new OptionsField('Options', [
             'options' => ['option1', 'option2', 'option3'],
         ]), 'options');
+        $this->form->addField(new OptionsField('Non-strict options', [
+            'options' => ['optionA', 'optionB', 'optionC'],
+            'allowOther' => true,
+            'optionName' => 'options-allow-other',
+        ]), 'options_non_strict');
         $this->form->configureInputDefinition($definition);
         $output = new NullOutput();
 
@@ -295,20 +296,22 @@ class FormTest extends TestCase
             '--test' => $this->validString,
             '--mail' => $this->validMail,
             '--options' => 'option1',
+            '--options-allow-other' => 'optionO',
         ], $definition);
         $input->setInteractive(false);
         $result = $this->form->resolveOptions($input, $output, $helper);
-        $validResult = $this->validResult + ['options' => 'option1'];
+        $validResult = $this->validResult + ['options' => 'option1', 'options_non_strict' => 'optionO'];
         $this->assertEquals($validResult, $result, 'Valid non-interactive option input');
 
         // Test interactive input.
         $input = new ArrayInput([
             '--test' => $this->validString,
             '--mail' => $this->validMail,
+            '--options-allow-other' => 'optionO',
         ], $definition);
-        $helper->setInputStream($this->getInputStream(str_repeat("\n", $countFieldsBefore) . '1'));
+        $input->setStream($this->getInputStream(str_repeat("\n", $countFieldsBefore) . '1'));
         $result = $this->form->resolveOptions($input, $output, $helper);
-        $validResult = $this->validResult + ['options' => 'option2'];
+        $validResult = $this->validResult + ['options' => 'option2', 'options_non_strict' => 'optionO'];
         $this->assertEquals($validResult, $result, 'Valid interactive option input');
     }
 
@@ -341,7 +344,8 @@ class FormTest extends TestCase
             '--custom-validated' => 'not valid',
         ], $definition);
         $input->setInteractive(false);
-        $this->expectException('\\Platformsh\\ConsoleForm\\Exception\\InvalidValueException', 'Not valid');
+        $this->expectException('\\Platformsh\\ConsoleForm\\Exception\\InvalidValueException');
+        $this->expectExceptionMessage('Not valid');
         $this->form->resolveOptions($input, $output, $helper);
     }
 

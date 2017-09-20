@@ -8,6 +8,7 @@ class OptionsField extends Field
 {
     protected $options = [];
     protected $asChoice = true;
+    protected $allowOther = false;
 
     /**
      * A callback used to calculate dynamic options.
@@ -26,7 +27,7 @@ class OptionsField extends Field
     {
         parent::__construct($name, $config);
         $this->validators[] = function ($value) {
-            return in_array($value, $this->options, true)
+            return $this->allowOther || in_array($value, $this->options, true)
                 ? true : "$value is not one of: " . implode(', ', $this->options);
         };
     }
