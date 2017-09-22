@@ -24,6 +24,22 @@ class ArrayField extends Field
     /**
      * {@inheritdoc}
      */
+    protected function getQuestionText()
+    {
+        $text = $this->name;
+        if (!empty($this->default)) {
+            $text .= ' <question>[default: ' . $this->formatDefault($this->default) . ']</question>';
+        } else {
+            $text .= ' <question>[comma-separated]</question>';
+        }
+        $text .= ': ';
+
+        return $text;
+    }
+
+    /**
+     * {@inheritdoc}
+     */
     public function matchesCondition($userValue, $condition)
     {
         return !array_diff($userValue, $condition);
