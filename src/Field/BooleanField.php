@@ -13,7 +13,7 @@ class BooleanField extends Field
      */
     protected function getQuestionText()
     {
-        return $this->name
+        return rtrim($this->getQuestionHeader(false), '?')
           . '? <question>['
           . ($this->default ? 'Y|n' : 'y|N')
           . ']</question> ';

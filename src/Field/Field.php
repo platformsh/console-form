@@ -42,7 +42,23 @@ class Field
      *
      * @var string
      */
-    protected $description;
+    protected $description = '';
+
+    /**
+     * The questioning or explanatory line of text in an interactive question.
+     *
+     * By default the description of the field will be used.
+     *
+     * @var string
+     */
+    protected $questionLine = '';
+
+    /**
+     * Values used for auto-completion.
+     *
+     * @var null|array
+     */
+    protected $autoCompleterValues;
 
     /**
      * Whether the field is required.
@@ -59,6 +75,20 @@ class Field
      * @var mixed|null
      */
     protected $default;
+
+    /**
+     * The prompt.
+     *
+     * @var string
+     */
+    protected $prompt = '> ';
+
+    /**
+     * The required value marker.
+     *
+     * @var string
+     */
+    protected $requiredMarker = '<fg=red>*</> ';
 
     /**
      * A callback used to calculate a dynamic default.
@@ -247,12 +277,48 @@ class Field
     public function getAsOption()
     {
         return new InputOption(
-          $this->getOptionName(),
-          $this->shortcut,
-          $this->getOptionMode(),
-          $this->description ? $this->description : $this->name,
-          $this->default
+            $this->getOptionName(),
+            $this->shortcut,
+            $this->getOptionMode(),
+            $this->getDescription(),
+            $this->default
         );
+    }
+
+    /**
+     * Get the description of the field, used in help and interactive questions.
+     *
+     * @return string
+     */
+    protected function getDescription()
+    {
+        return $this->description ?: $this->name;
+    }
+
+    /**
+     * Get the header text for an interactive question.
+     *
+     * @param bool $includeDefault
+     *
+     * @return string
+     */
+    protected function getQuestionHeader($includeDefault = true)
+    {
+        $header = '';
+        if ($this->isRequired()) {
+            $header .= $this->requiredMarker;
+        }
+        $header .= '<fg=green>' . $this->name . '</> (--' . $this->getOptionName() . ')';
+        if (!empty($this->questionLine)) {
+            $header .= "\n" . $this->questionLine;
+        } elseif (!empty($this->description)) {
+            $header .= "\n" . $this->description;
+        }
+        if ($includeDefault && $this->default !== null) {
+            $header .= "\n" . 'Default: <question>' . $this->formatDefault($this->default) . '</question>';
+        }
+
+        return $header;
     }
 
     /**
@@ -272,6 +338,7 @@ class Field
 
             return $value;
         });
+        $question->setAutocompleterValues($this->autoCompleterValues);
 
         return $question;
     }
@@ -283,13 +350,7 @@ class Field
      */
     protected function getQuestionText()
     {
-        $text = $this->name;
-        if ($this->default !== null) {
-            $text .= ' <question>[default: ' . $this->formatDefault($this->default) . ']</question>';
-        }
-        $text .= ': ';
-
-        return $text;
+        return $this->getQuestionHeader() . "\n" . $this->prompt;
     }
 
     /**
@@ -303,8 +364,8 @@ class Field
      */
     protected function formatDefault($default)
     {
-        if (PHP_VERSION_ID < 50400) {
-            return str_replace('\/', '/', json_encode($default));
+        if (is_string($default)) {
+            return $default;
         }
 
         return json_encode($default, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE);

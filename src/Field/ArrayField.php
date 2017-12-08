@@ -26,13 +26,15 @@ class ArrayField extends Field
      */
     protected function getQuestionText()
     {
-        $text = $this->name;
+        $text = $this->getQuestionHeader(false);
         if (!empty($this->default)) {
-            $text .= ' <question>[default: ' . $this->formatDefault($this->default) . ']</question>';
-        } else {
-            $text .= ' <question>[comma-separated]</question>';
+            $text .= "\n" . 'Default: <question>' . implode(', ', (array) $this->default) . '</question>';
         }
-        $text .= ': ';
+        $text .= "\nEnter comma-separated values";
+        if (!$this->isRequired()) {
+            $text .= ' (or leave this blank)';
+        }
+        $text .= "\n" . $this->prompt;
 
         return $text;
     }

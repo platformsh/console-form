@@ -68,13 +68,28 @@ class OptionsField extends Field
             ? array_search($this->default, $this->options, true) : $this->default;
 
         $question = new ChoiceQuestion(
-            $this->name . " (enter a number to choose): ",
+            $this->getQuestionHeader() . "\nEnter a number to choose: ",
             $this->options,
             $defaultKey !== false ? $defaultKey : null
         );
+        $question->setPrompt($this->prompt);
         $question->setMaxAttempts($this->maxAttempts);
 
         return $question;
+    }
+
+    /**
+     * @return string
+     */
+    protected function getDescription()
+    {
+        $description = parent::getDescription();
+        $optionsString = "'" . implode("', '", $this->options) . "'";
+        if (strlen($optionsString) < 255) {
+            $description .= ' (' . $optionsString . ')';
+        }
+
+        return $description;
     }
 
     /**

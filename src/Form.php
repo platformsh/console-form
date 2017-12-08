@@ -8,6 +8,8 @@ use Platformsh\ConsoleForm\Field\Field;
 use Symfony\Component\Console\Helper\QuestionHelper;
 use Symfony\Component\Console\Input\InputDefinition;
 use Symfony\Component\Console\Input\InputInterface;
+use Symfony\Component\Console\Output\ConsoleOutput;
+use Symfony\Component\Console\Output\ConsoleOutputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
 
 class Form
@@ -106,6 +108,7 @@ class Form
     public function resolveOptions(InputInterface $input, OutputInterface $output, QuestionHelper $helper)
     {
         $values = [];
+        $stdErr = $output instanceof ConsoleOutput ? $output->getErrorOutput() : $output;
         foreach ($this->fields as $key => $field) {
             $field->onChange($values);
 
@@ -119,7 +122,8 @@ class Form
                 $field->validate($value);
             } elseif ($input->isInteractive()) {
                 // Get the value interactively.
-                $value = $helper->ask($input, $output, $field->getAsQuestion());
+                $value = $helper->ask($input, $stdErr, $field->getAsQuestion());
+                $stdErr->writeln('');
             } elseif ($field->isRequired()) {
                 throw new MissingValueException('--' . $field->getOptionName() . ' is required');
             }
