@@ -47,11 +47,12 @@ class Field
     /**
      * The questioning or explanatory line of text in an interactive question.
      *
-     * By default the description of the field will be used.
+     * If this is null (the default), the description of the field will be used.
+     * If this is set to an empty string, no line will be shown.
      *
-     * @var string
+     * @var string|null
      */
-    protected $questionLine = '';
+    protected $questionLine = null;
 
     /**
      * Values used for auto-completion.
@@ -309,10 +310,10 @@ class Field
             $header .= $this->requiredMarker;
         }
         $header .= '<fg=green>' . $this->name . '</> (--' . $this->getOptionName() . ')';
-        if (!empty($this->questionLine)) {
-            $header .= "\n" . $this->questionLine;
-        } elseif (!empty($this->description)) {
+        if ($this->questionLine === null && !empty($this->description)) {
             $header .= "\n" . $this->description;
+        } elseif (!empty($this->questionLine)) {
+            $header .= "\n" . $this->questionLine;
         }
         if ($includeDefault && $this->default !== null) {
             $header .= "\n" . 'Default: <question>' . $this->formatDefault($this->default) . '</question>';
