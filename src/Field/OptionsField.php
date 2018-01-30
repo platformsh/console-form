@@ -84,9 +84,11 @@ class OptionsField extends Field
     protected function getDescription()
     {
         $description = parent::getDescription();
-        $optionsString = "'" . implode("', '", $this->options) . "'";
-        if (strlen($optionsString) < 255) {
-            $description .= ' (' . $optionsString . ')';
+        if (!empty($this->options)) {
+            $optionsString = "'" . implode("', '", $this->options) . "'";
+            if (strlen($optionsString) < 255) {
+                $description .= ' (' . $optionsString . ')';
+            }
         }
 
         return $description;
