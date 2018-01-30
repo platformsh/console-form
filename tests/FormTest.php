@@ -14,6 +14,7 @@ use Platformsh\ConsoleForm\Form;
 use Symfony\Component\Console\Helper\FormatterHelper;
 use Symfony\Component\Console\Helper\HelperSet;
 use Symfony\Component\Console\Helper\QuestionHelper;
+use Symfony\Component\Console\Input\ArgvInput;
 use Symfony\Component\Console\Input\ArrayInput;
 use Symfony\Component\Console\Input\InputDefinition;
 use Symfony\Component\Console\Output\NullOutput;
@@ -373,6 +374,39 @@ class FormTest extends TestCase
       $input->setInteractive(false);
       $result = $this->form->resolveOptions($input, new NullOutput(), $this->getQuestionHelper());
       $this->assertEquals($validResult, $result, 'Empty input passes');
+    }
+
+    public function testCommandLineCommaSeparatedArrayOptions()
+    {
+        $definition = new InputDefinition();
+        $this->form->configureInputDefinition($definition);
+
+        $validResult = $this->validResult;
+        $validResult['array'] = ['foo', 'bar', 'baz'];
+
+        $input = new ArgvInput([
+            'commandName',
+            '--test', $this->validString,
+            '--mail', $this->validMail,
+            '--array', 'foo, bar,baz',
+        ], $definition);
+        $input->setInteractive(false);
+        $result = $this->form->resolveOptions($input, new NullOutput(), $this->getQuestionHelper());
+        $this->assertEquals($validResult, $result, 'Array input with comma-separated values passes');
+
+        $validResult = $this->validResult;
+        $validResult['array'] = ['foo, bar', 'baz'];
+
+        $input = new ArgvInput([
+            'commandName',
+            '--test', $this->validString,
+            '--mail', $this->validMail,
+            '--array', 'foo, bar',
+            '--array', 'baz',
+        ], $definition);
+        $input->setInteractive(false);
+        $result = $this->form->resolveOptions($input, new NullOutput(), $this->getQuestionHelper());
+        $this->assertEquals($validResult, $result, 'Array input with array values passes');
     }
 
     /**
