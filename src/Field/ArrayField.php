@@ -11,14 +11,32 @@ class ArrayField extends Field
     /**
      * {@inheritdoc}
      */
-    public function getAsQuestion()
+    public function normalize($value)
     {
-        $question = parent::getAsQuestion();
-        $question->setNormalizer(function ($value) {
-            return is_array($value) ? $value : array_filter(preg_split('/[,;\n] */', $value), 'strlen');
-        });
+        // If the value is an array of only one element, it might be a
+        // comma-separated string provided to the command-line option. Extract
+        // the first element.
+        if (is_array($value) && count($value) === 1) {
+            $value = reset($value);
+        }
 
-        return $question;
+        // If the value is a string, split it into an array.
+        if (is_string($value)) {
+            $value = $this->split($value);
+        }
+
+        return parent::normalize($value);
+    }
+
+    /**
+     * Split a comma or whitespace-separated string into an array.
+     *
+     * @param string $str
+     *
+     * @return array
+     */
+    private function split($str) {
+        return array_filter(preg_split('/[,\s]+/', $str), 'strlen');
     }
 
     /**
