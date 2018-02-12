@@ -29,14 +29,14 @@ class ArrayField extends Field
     }
 
     /**
-     * Split a comma-separated string into an array.
+     * Split a comma or whitespace-separated string into an array.
      *
      * @param string $str
      *
      * @return array
      */
     private function split($str) {
-        return array_filter(preg_split('/[,;\n] */', $str), 'strlen');
+        return array_filter(preg_split('/[,\s]+/', $str), 'strlen');
     }
 
     /**
