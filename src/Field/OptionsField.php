@@ -27,8 +27,13 @@ class OptionsField extends Field
     {
         parent::__construct($name, $config);
         $this->validators[] = function ($value) {
-            return $this->allowOther || in_array($value, $this->options, true)
-                ? true : "$value is not one of: " . implode(', ', $this->options);
+            if ($this->allowOther) {
+                return true;
+            }
+            $options = $this->isNumeric() ? $this->options : array_keys($this->options);
+
+            return array_search($value, $options, true) !== false
+                ? true : "$value is not one of: " . implode(', ', $options);
         };
     }
 
@@ -63,17 +68,22 @@ class OptionsField extends Field
      */
     protected function getChoiceQuestion()
     {
-        // Translate the default into an array key.
-        $defaultKey = $this->default !== null
-            ? array_search($this->default, $this->options, true) : $this->default;
+        $numeric = $this->isNumeric();
+        $text = $this->getQuestionHeader();
+        if ($numeric) {
+            $text .= "\nEnter a number to choose: ";
+        }
 
         $question = new ChoiceQuestion(
-            $this->getQuestionHeader() . "\nEnter a number to choose: ",
+            $text,
             $this->options,
-            $defaultKey !== false ? $defaultKey : null
+            $this->default
         );
         $question->setPrompt($this->prompt);
         $question->setMaxAttempts($this->maxAttempts);
+        if (!$numeric) {
+            $question->setAutocompleterValues(array_keys($this->options));
+        }
 
         return $question;
     }
@@ -103,5 +113,21 @@ class OptionsField extends Field
             $callback = $this->optionsCallback;
             $this->options = $callback($previousValues);
         }
+    }
+
+    /**
+     * Check if this is numeric, rather than associative.
+     *
+     * @return bool
+     */
+    private function isNumeric()
+    {
+        foreach (array_keys($this->options) as $key) {
+            if (!is_int($key)) {
+                return false;
+            }
+        }
+
+        return true;
     }
 }

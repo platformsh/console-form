@@ -288,6 +288,10 @@ class FormTest extends TestCase
             'allowOther' => true,
             'optionName' => 'options-allow-other',
         ]), 'options_non_strict');
+        $this->form->addField(new OptionsField('Associative options', [
+            'options' => ['option1' => 'Option 1', 'option2' => 'Option 2', 'option3' => 'Option 3'],
+            'optionName' => 'options-assoc',
+        ]), 'options-assoc');
         $this->form->configureInputDefinition($definition);
         $output = new NullOutput();
 
@@ -297,10 +301,15 @@ class FormTest extends TestCase
             '--mail' => $this->validMail,
             '--options' => 'option1',
             '--options-allow-other' => 'optionO',
+            '--options-assoc' => 'option2',
         ], $definition);
         $input->setInteractive(false);
         $result = $this->form->resolveOptions($input, $output, $helper);
-        $validResult = $this->validResult + ['options' => 'option1', 'options_non_strict' => 'optionO'];
+        $validResult = $this->validResult + [
+            'options' => 'option1',
+            'options_non_strict' => 'optionO',
+            'options-assoc' => 'option2',
+        ];
         $this->assertEquals($validResult, $result, 'Valid non-interactive option input');
 
         // Test interactive input.
@@ -309,9 +318,13 @@ class FormTest extends TestCase
             '--mail' => $this->validMail,
             '--options-allow-other' => 'optionO',
         ], $definition);
-        $input->setStream($this->getInputStream(str_repeat("\n", $countFieldsBefore) . '1'));
+        $input->setStream($this->getInputStream(str_repeat("\n", $countFieldsBefore) . "1\noption2"));
         $result = $this->form->resolveOptions($input, $output, $helper);
-        $validResult = $this->validResult + ['options' => 'option2', 'options_non_strict' => 'optionO'];
+        $validResult = $this->validResult + [
+            'options' => 'option2',
+            'options_non_strict' => 'optionO',
+            'options-assoc' => 'option2',
+        ];
         $this->assertEquals($validResult, $result, 'Valid interactive option input');
     }
 
