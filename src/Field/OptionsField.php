@@ -9,6 +9,7 @@ class OptionsField extends Field
     protected $options = [];
     protected $asChoice = true;
     protected $allowOther = false;
+    protected $autoDescribe = true;
 
     /**
      * A callback used to calculate dynamic options.
@@ -109,11 +110,15 @@ class OptionsField extends Field
     {
         $description = parent::getDescription();
         $validOptions = $this->validOptions();
-        if (!empty($validOptions)) {
+        if (!empty($validOptions) && $this->autoDescribe) {
             $separator = count($validOptions) === 2 ? ' or ' : ', ';
             $optionsString = "'" . implode("'$separator'", $this->validOptions()) . "'";
             if (strlen($optionsString) < 255) {
-                $description .= ' (' . $optionsString . ')';
+                $description .= ' (';
+                if ($this->allowOther) {
+                    $description .= 'e.g. ';
+                }
+                $description .= $optionsString . ')';
             }
         }
 
