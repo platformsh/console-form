@@ -30,11 +30,21 @@ class OptionsField extends Field
             if ($this->allowOther) {
                 return true;
             }
-            $options = $this->isNumeric() ? $this->options : array_keys($this->options);
+            $options = $this->validOptions();
 
             return array_search($value, $options, true) !== false
                 ? true : "$value is not one of: " . implode(', ', $options);
         };
+    }
+
+    /**
+     * Return a list of valid option values.
+     *
+     * @return array
+     */
+    private function validOptions()
+    {
+        return $this->isNumeric() ? $this->options : array_keys($this->options);
     }
 
     /**
@@ -94,8 +104,10 @@ class OptionsField extends Field
     protected function getDescription()
     {
         $description = parent::getDescription();
-        if (!empty($this->options)) {
-            $optionsString = "'" . implode("', '", $this->options) . "'";
+        $validOptions = $this->validOptions();
+        if (!empty($validOptions)) {
+            $separator = count($validOptions) === 2 ? ' or ' : ', ';
+            $optionsString = "'" . implode("'$separator'", $this->validOptions()) . "'";
             if (strlen($optionsString) < 255) {
                 $description .= ' (' . $optionsString . ')';
             }
