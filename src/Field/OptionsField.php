@@ -52,6 +52,10 @@ class OptionsField extends Field
      */
     public function matchesCondition($userValue, $condition)
     {
+        if (is_callable($condition)) {
+            return $condition($userValue);
+        }
+
         return is_array($condition)
           ? in_array($userValue, $condition)
           : $userValue === $condition;

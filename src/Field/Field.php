@@ -141,7 +141,8 @@ class Field
      *   An array mapping field keys (referencing other fields in the form) to
      *   user input. If any conditions are defined, all of them must match the
      *   user's input via self::matchesCondition(), otherwise the field will not
-     *   be displayed.
+     *   be displayed. If the condition is a callable, it will be called with
+     *   one argument (the user input) and expected to return a boolean.
      */
     protected $conditions = [];
 
@@ -211,6 +212,10 @@ class Field
      */
     public function matchesCondition($userValue, $condition)
     {
+        if (is_callable($condition)) {
+            return $condition($userValue);
+        }
+
         return $userValue === $condition;
     }
 

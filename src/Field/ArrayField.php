@@ -62,6 +62,10 @@ class ArrayField extends Field
      */
     public function matchesCondition($userValue, $condition)
     {
+        if (is_callable($condition)) {
+            return $condition($userValue);
+        }
+
         return !array_diff($userValue, $condition);
     }
 
