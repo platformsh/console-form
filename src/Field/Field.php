@@ -18,6 +18,13 @@ class Field
     protected $name;
 
     /**
+     * Whether to include this field as a command-line option.
+     *
+     * @var bool
+     */
+    protected $includeAsOption = true;
+
+    /**
      * The command-line option name for the field.
      *
      * @see self::getAsOption()
@@ -273,6 +280,16 @@ class Field
     public function getOptionName()
     {
         return $this->optionName ?: preg_replace('/[ _]/', '-', strtolower($this->name));
+    }
+
+    /**
+     * Returns whether to include this field as a command-line option.
+     *
+     * @return bool
+     */
+    public function includeAsOption()
+    {
+        return $this->includeAsOption;
     }
 
     /**

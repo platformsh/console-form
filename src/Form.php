@@ -72,7 +72,9 @@ class Form
     public function configureInputDefinition(InputDefinition $definition)
     {
         foreach ($this->fields as $field) {
-            $definition->addOption($field->getAsOption());
+            if ($field->includeAsOption()) {
+                $definition->addOption($field->getAsOption());
+            }
         }
     }
 
