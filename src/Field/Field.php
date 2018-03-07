@@ -432,11 +432,11 @@ class Field
         if (!$input->hasOption($optionName)) {
             return null;
         }
-        if ($input->getParameterOption('--' . $optionName) === false) {
-            return null;
-        }
         $value = $input->getOption($optionName);
         if ($this->isEmpty($value)) {
+            return null;
+        }
+        if ($input->getParameterOption('--' . $optionName) === false && $value === $this->default) {
             return null;
         }
 
