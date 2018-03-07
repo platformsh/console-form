@@ -422,6 +422,27 @@ class FormTest extends TestCase
         $this->assertEquals($validResult, $result, 'Array input with array values passes');
     }
 
+    public function testPresetInputOptions()
+    {
+        $definition = new InputDefinition();
+        $this->form->configureInputDefinition($definition);
+
+        $validResult = $this->validResult;
+
+        $input = new ArgvInput([
+            'commandName',
+            '--test', $this->validString,
+            '--mail', $this->validMail,
+        ], $definition);
+
+        $input->setOption('field-with-default', 'test string');
+        $validResult['with_default'] = 'test string';
+
+        $input->setInteractive(false);
+        $result = $this->form->resolveOptions($input, new NullOutput(), $this->getQuestionHelper());
+        $this->assertEquals($validResult, $result, 'Input with non-parameter value passes.');
+    }
+
     /**
      * @return QuestionHelper
      */
