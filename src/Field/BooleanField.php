@@ -22,6 +22,19 @@ class BooleanField extends Field
     /**
      * {@inheritdoc}
      */
+    public function isEmpty($value)
+    {
+        // False is not empty.
+        if ($value === false) {
+            return false;
+        }
+
+        return parent::isEmpty($value);
+    }
+
+    /**
+     * {@inheritdoc}
+     */
     protected function normalize($value)
     {
         if (is_bool($value)) {
