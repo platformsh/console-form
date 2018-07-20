@@ -154,6 +154,16 @@ class Field
     protected $conditions = [];
 
     /**
+     * Array keys, under which the value of this field should be returned.
+     *
+     * For example, keys of ['foo', 'bar'] would result in the form returning
+     * this field's value under $values['foo']['bar'].
+     *
+     * @var string[]
+     */
+    protected $valueKeys = [];
+
+    /**
      * Constructor.
      *
      * @param string $name
@@ -197,6 +207,16 @@ class Field
         }
 
         return $this;
+    }
+
+    /**
+     * Get keys under which this field's value will be returned.
+     *
+     * @return string[]
+     */
+    public function getValueKeys()
+    {
+        return $this->valueKeys;
     }
 
     /**

@@ -129,7 +129,12 @@ class Form
                 throw new MissingValueException('--' . $field->getOptionName() . ' is required');
             }
 
-            $values[$key] = $field->getFinalValue($value);
+            self::setNestedArrayValue(
+                $values,
+                $field->getValueKeys() ?: [$key],
+                $field->getFinalValue($value),
+                true
+            );
         }
 
         return $values;
@@ -155,5 +160,29 @@ class Form
         }
 
         return true;
+    }
+
+    /**
+     * Set a nested value in an array.
+     *
+     * @see Copied from \Drupal\Component\Utility\NestedArray::setValue()
+     *
+     * @param array &$array
+     * @param array $parents
+     * @param mixed $value
+     * @param bool  $force
+     */
+    public static function setNestedArrayValue(array &$array, array $parents, $value, $force = false)
+    {
+        $ref = &$array;
+        foreach ($parents as $parent) {
+            // PHP auto-creates container arrays and NULL entries without error if $ref
+            // is NULL, but throws an error if $ref is set, but not an array.
+            if ($force && isset($ref) && !is_array($ref)) {
+                $ref = [];
+            }
+            $ref = &$ref[$parent];
+        }
+        $ref = $value;
     }
 }

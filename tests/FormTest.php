@@ -64,6 +64,16 @@ class FormTest extends TestCase
             'optionName' => 'array',
             'required' => false,
           ]),
+          'custom_value_keys1' => new BooleanField('Field with custom value keys 1', [
+            'optionName' => 'custom-keys-1',
+            'default' => false,
+            'valueKeys' => ['foo1'],
+          ]),
+          'custom_value_keys2' => new BooleanField('Field with custom value keys 2', [
+            'optionName' => 'custom-keys-2',
+            'default' => true,
+            'valueKeys' => ['foo2', 'bar'],
+          ]),
         ];
         $this->form = Form::fromArray($this->fields);
         $this->validResult = [
@@ -73,6 +83,8 @@ class FormTest extends TestCase
           'array' => [],
           'with_default' => 'defaultValue',
           'with_dynamic_default' => $this->validString,
+          'foo1' => false,
+          'foo2' => ['bar' => true],
         ];
     }
 
