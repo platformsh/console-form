@@ -33,6 +33,9 @@ class FormTest extends TestCase
     /** @var string */
     protected $validMail = 'valid@example.com';
 
+    /** @var string */
+    protected $validOptionsDynamicDefault = 'foo';
+
     /** @var array */
     protected $validResult = [];
 
@@ -54,6 +57,13 @@ class FormTest extends TestCase
           'with_dynamic_default' => new Field('Field with dynamic default', [
             'defaultCallback' => function (array $values) {
                 return $values['test_field'];
+            },
+          ]),
+          'options_with_dynamic_default' => new OptionsField('Options with dynamic default', [
+            'optionName' => 'options-dyn-default',
+            'options' => ['foo', 'bar', 'baz'],
+            'defaultCallback' => function () {
+              return $this->validOptionsDynamicDefault;
             },
           ]),
           'bool' => new BooleanField('Boolean field', [
@@ -83,6 +93,7 @@ class FormTest extends TestCase
           'array' => [],
           'with_default' => 'defaultValue',
           'with_dynamic_default' => $this->validString,
+          'options_with_dynamic_default' => $this->validOptionsDynamicDefault,
           'foo1' => false,
           'foo2' => ['bar' => true],
         ];
@@ -339,6 +350,25 @@ class FormTest extends TestCase
             'options-assoc' => 'option2',
         ];
         $this->assertEquals($validResult, $result, 'Valid interactive option input');
+    }
+
+    public function testOptionsFieldWithDynamicDefault()
+    {
+        // Test dynamic default.
+        $definition = new InputDefinition();
+        $this->form->configureInputDefinition($definition);
+        $input = new ArrayInput([
+            '--test' => $this->validString,
+            '--mail' => $this->validMail,
+        ], $definition);
+        $input->setInteractive(false);
+        $original = $this->validOptionsDynamicDefault;
+        $this->validOptionsDynamicDefault = 'baz';
+        $result = $this->form->resolveOptions($input, new NullOutput(), $this->getQuestionHelper());
+        $this->validOptionsDynamicDefault = $original;
+        $validResult = $this->validResult;
+        $validResult['options_with_dynamic_default'] = 'baz';
+        $this->assertEquals($validResult, $result, 'Dynamic option default worked');
     }
 
     public function testCustomValidator()
