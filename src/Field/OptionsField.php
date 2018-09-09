@@ -130,6 +130,7 @@ class OptionsField extends Field
      */
     public function onChange(array $previousValues)
     {
+        parent::onChange($previousValues);
         if (isset($this->optionsCallback)) {
             $callback = $this->optionsCallback;
             $this->options = $callback($previousValues);
