@@ -9,6 +9,7 @@ use Platformsh\ConsoleForm\Field\ArrayField;
 use Platformsh\ConsoleForm\Field\BooleanField;
 use Platformsh\ConsoleForm\Field\EmailAddressField;
 use Platformsh\ConsoleForm\Field\Field;
+use Platformsh\ConsoleForm\Field\FileField;
 use Platformsh\ConsoleForm\Field\OptionsField;
 use Platformsh\ConsoleForm\Form;
 use Symfony\Component\Console\Helper\FormatterHelper;
@@ -74,6 +75,12 @@ class FormTest extends TestCase
             'optionName' => 'array',
             'required' => false,
           ]),
+          'file' => new FileField('JSON file', [
+              'optionName' => 'file',
+              'required' => false,
+              'requireExists' => false,
+              'allowedExtensions' => ['json', ''],
+          ]),
           'custom_value_keys1' => new BooleanField('Field with custom value keys 1', [
             'optionName' => 'custom-keys-1',
             'default' => false,
@@ -96,6 +103,7 @@ class FormTest extends TestCase
           'options_with_dynamic_default' => $this->validOptionsDynamicDefault,
           'foo1' => false,
           'foo2' => ['bar' => true],
+          'file' => null,
         ];
     }
 
@@ -483,6 +491,52 @@ class FormTest extends TestCase
         $input->setInteractive(false);
         $result = $this->form->resolveOptions($input, new NullOutput(), $this->getQuestionHelper());
         $this->assertEquals($validResult, $result, 'Input with non-parameter value passes.');
+    }
+
+    public function testFileField()
+    {
+        $definition = new InputDefinition();
+        $this->form->configureInputDefinition($definition);
+
+        $validResult = $this->validResult;
+
+        $input = new ArgvInput([
+            'commandName',
+            '--test', $this->validString,
+            '--mail', $this->validMail,
+            '--file', 'filename.json',
+        ], $definition);
+
+        $validResult['file'] = 'filename.json';
+
+        $input->setInteractive(false);
+        $result = $this->form->resolveOptions($input, new NullOutput(), $this->getQuestionHelper());
+        $this->assertEquals($validResult, $result, 'Input with valid filename passes.');
+
+        $input = new ArgvInput([
+            'commandName',
+            '--test', $this->validString,
+            '--mail', $this->validMail,
+            '--file', 'filename',
+        ], $definition);
+
+        $validResult['file'] = 'filename';
+
+        $input->setInteractive(false);
+        $result = $this->form->resolveOptions($input, new NullOutput(), $this->getQuestionHelper());
+        $this->assertEquals($validResult, $result, 'Filename with no extension considered valid.');
+
+        $input = new ArgvInput([
+            'commandName',
+            '--test', $this->validString,
+            '--mail', $this->validMail,
+            '--file', 'filename.png',
+        ], $definition);
+
+        $this->expectException(InvalidValueException::class);
+        $this->expectExceptionMessage('Invalid file extension');
+        $input->setInteractive(false);
+        $this->form->resolveOptions($input, new NullOutput(), $this->getQuestionHelper());
     }
 
     /**
