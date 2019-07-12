@@ -539,6 +539,31 @@ class FormTest extends TestCase
         $this->form->resolveOptions($input, new NullOutput(), $this->getQuestionHelper());
     }
 
+    public function testFileContentsAsValue()
+    {
+        $definition = new InputDefinition();
+        $this->form->configureInputDefinition($definition);
+
+        $this->form->getField('file')->set('contentsAsValue', true);
+
+        $tmpFilename = tempnam(sys_get_temp_dir(), 'test');
+        $testContents = random_bytes(24);
+        file_put_contents($tmpFilename, $testContents);
+
+        $input = new ArgvInput([
+            'commandName',
+            '--test', $this->validString,
+            '--mail', $this->validMail,
+            '--file', $tmpFilename,
+        ], $definition);
+
+        $validResult['file'] = '';
+
+        $input->setInteractive(false);
+        $result = $this->form->resolveOptions($input, new NullOutput(), $this->getQuestionHelper());
+        $this->assertEquals($testContents, $result['file'], "Value for file is returned as the file's contents");
+    }
+
     /**
      * @return QuestionHelper
      */
