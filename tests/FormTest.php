@@ -547,7 +547,7 @@ class FormTest extends TestCase
         $this->form->getField('file')->set('contentsAsValue', true);
 
         $tmpFilename = tempnam(sys_get_temp_dir(), 'test');
-        $testContents = random_bytes(24);
+        $testContents = function_exists('random_bytes') ? random_bytes(24) : rand(1000, 1000000000);
         file_put_contents($tmpFilename, $testContents);
 
         $input = new ArgvInput([
