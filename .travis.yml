@@ -22,5 +22,5 @@ install:
   - composer install --no-interaction
 
 script:
-  - 'curl -H "Accept: text/plain" https://security.sensiolabs.org/check_lock -F lock=@./composer.lock'
+  - 'curl -H "Accept: text/plain" https://security.symfony.com/check_lock -F lock=@./composer.lock'
   - ./vendor/bin/phpunit -c ./phpunit.xml --coverage-text
