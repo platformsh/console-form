@@ -85,6 +85,15 @@ class Field
     protected $default;
 
     /**
+     * The field's original default value (unaffected by the defaultCallback) used internally.
+     *
+     * @internal
+     *
+     * @var mixed|null
+     */
+    protected $originalDefault;
+
+    /**
      * The prompt.
      *
      * @var string
@@ -197,6 +206,10 @@ class Field
 
             case 'normalizer':
                 $this->normalizers[] = $value;
+                break;
+
+            case 'default':
+                $this->default = $this->originalDefault = $value;
                 break;
 
             default:
@@ -456,7 +469,7 @@ class Field
         if ($this->isEmpty($value)) {
             return null;
         }
-        if ($input->getParameterOption('--' . $optionName) === false && $value === $this->default) {
+        if ($input->getParameterOption('--' . $optionName) === false && $value === $this->originalDefault) {
             return null;
         }
 
