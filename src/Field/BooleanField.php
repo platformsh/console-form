@@ -6,9 +6,19 @@ use Platformsh\ConsoleForm\Exception\InvalidValueException;
 
 class BooleanField extends Field
 {
-    public $default = true;
-
     /**
+     * @{inheritdoc}
+     */
+    public function __construct($name, array $config = [])
+    {
+        parent::__construct($name, $config);
+        // The default is true, unless a callback is set.
+        if (!isset($this->defaultCallback) && !isset($this->default)) {
+            $this->default = true;
+        }
+    }
+
+   /**
      * {@inheritdoc}
      */
     protected function getQuestionText()
