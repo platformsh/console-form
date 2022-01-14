@@ -52,6 +52,11 @@ class FormTest extends TestCase
           'email' => new EmailAddressField('Email address', [
             'optionName' => 'mail',
           ]),
+          'non_option_field' => new Field('Form-only field not being included as an option', [
+            'optionName' => 'non-option-field',
+            'includeAsOption' => false,
+            'required' => false,
+          ]),
           'with_default' => new Field('Field with default', [
             'default' => 'defaultValue',
           ]),
@@ -104,6 +109,7 @@ class FormTest extends TestCase
           'foo1' => false,
           'foo2' => ['bar' => true],
           'file' => null,
+          'non_option_field' => null,
         ];
     }
 
@@ -163,10 +169,12 @@ class FormTest extends TestCase
         $output = new NullOutput();
 
         $input->setStream($this->getInputStream(
-            "{$this->validString}\n{$this->validMail}\n" . str_repeat("\n", count($this->form->getFields()) - 2)
+            "{$this->validString}\n{$this->validMail}\nfoo\n" . str_repeat("\n", count($this->form->getFields()) - 3)
         ));
         $result = $this->form->resolveOptions($input, $output, $helper);
-        $this->assertEquals($this->validResult, $result, 'Valid input passes');
+        $expected = $this->validResult;
+        $expected['non_option_field'] = 'foo';
+        $this->assertEquals($expected, $result, 'Valid input passes');
     }
 
     public function testMixedInput()

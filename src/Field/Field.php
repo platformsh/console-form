@@ -312,7 +312,7 @@ class Field
      */
     public function getOptionName()
     {
-        return $this->optionName ?: preg_replace('/[ _]/', '-', strtolower($this->name));
+        return $this->optionName ?: preg_replace('/[^a-z0-9-]+/', '-', strtolower($this->name));
     }
 
     /**
@@ -364,7 +364,10 @@ class Field
         if ($this->isRequired()) {
             $header .= $this->requiredMarker;
         }
-        $header .= '<fg=green>' . $this->name . '</> (--' . $this->getOptionName() . ')';
+        $header .= '<fg=green>' . $this->name . '</>';
+        if ($this->includeAsOption) {
+            $header .= ' (--' . $this->getOptionName() . ')';
+        }
         if ($this->questionLine === null && !empty($this->description)) {
             $header .= "\n" . $this->description;
         } elseif (!empty($this->questionLine)) {
