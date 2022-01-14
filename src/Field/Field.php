@@ -499,7 +499,17 @@ class Field
      */
     public function isRequired()
     {
-        return $this->required && !isset($this->default);
+        return $this->required;
+    }
+
+    /**
+     * Check whether a default is set for the field.
+     *
+     * @return bool
+     */
+    public function hasDefault()
+    {
+        return isset($this->default);
     }
 
     /**

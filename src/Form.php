@@ -125,7 +125,7 @@ class Form
                 // Get the value interactively.
                 $value = $helper->ask($input, $stdErr, $field->getAsQuestion());
                 $stdErr->writeln('');
-            } elseif ($field->isRequired()) {
+            } elseif ($field->isRequired() && !$field->hasDefault()) {
                 throw new MissingValueException('--' . $field->getOptionName() . ' is required');
             }
 
