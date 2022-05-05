@@ -2,6 +2,4 @@
 
 namespace Platformsh\ConsoleForm\Exception;
 
-class MissingValueException extends \RuntimeException
-{
-}
+class MissingValueException extends FieldLevelException {}

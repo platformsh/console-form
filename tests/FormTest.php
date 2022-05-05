@@ -3,6 +3,7 @@
 namespace Platformsh\ConsoleForm\Tests;
 
 use PHPUnit\Framework\TestCase;
+use Platformsh\ConsoleForm\Exception\ConditionalFieldException;
 use Platformsh\ConsoleForm\Exception\InvalidValueException;
 use Platformsh\ConsoleForm\Exception\MissingValueException;
 use Platformsh\ConsoleForm\Field\ArrayField;
@@ -238,7 +239,6 @@ class FormTest extends TestCase
             '--test' => $this->validString,
             '--mail' => $this->validMail,
             '--dependency' => 'doNotTrigger',
-            '--dependent' => 'value',
         ], $definition);
         $input->setInteractive(false);
         $result = $this->form->resolveOptions($input, $output, $helper);
@@ -292,7 +292,6 @@ class FormTest extends TestCase
             '--test' => $this->validString,
             '--mail' => $this->validMail,
             '--dependency' => 'doNotTrigger',
-            '--dependent' => 'value',
         ], $definition);
         $input->setInteractive(false);
         $result = $this->form->resolveOptions($input, $output, $helper);
@@ -313,6 +312,18 @@ class FormTest extends TestCase
                 'dependent' => 'value',
             ];
         $this->assertEquals($validResult, $result, 'Dependent field does appear');
+
+        // Test providing a value for the dependent field even though it is not
+        // applicable.
+        $input = new ArrayInput([
+            '--test' => $this->validString,
+            '--mail' => $this->validMail,
+            '--dependency' => 'doNotTrigger',
+            '--dependent' => 'value',
+        ], $definition);
+        $input->setInteractive(false);
+        $this->expectException(ConditionalFieldException::class);
+        $this->form->resolveOptions($input, $output, $helper);
     }
 
     public function testOptionsField()

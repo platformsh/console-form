@@ -296,9 +296,9 @@ class Field
         foreach ($this->validators as $validator) {
             $result = call_user_func($validator, $normalized);
             if (is_string($result)) {
-                throw new InvalidValueException($result);
+                throw new InvalidValueException($result, $this);
             } elseif ($result === false) {
-                throw new InvalidValueException("Invalid value for '{$this->name}': $value");
+                throw new InvalidValueException("Invalid value for '{$this->name}': $value", $this);
             }
         }
     }
@@ -391,7 +391,7 @@ class Field
         $question->setMaxAttempts($this->maxAttempts);
         $question->setValidator(function ($value) {
             if ($this->isEmpty($value) && $this->isRequired()) {
-                throw new MissingValueException("'{$this->name}' is required");
+                throw new MissingValueException("'{$this->name}' is required", $this);
             }
             $this->validate($value);
 

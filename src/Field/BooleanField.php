@@ -14,7 +14,7 @@ class BooleanField extends Field
         parent::__construct($name, $config);
         // The default is true, unless a callback is set.
         if (!isset($this->defaultCallback) && !isset($this->default)) {
-            $this->default = true;
+            $this->default = $this->originalDefault = true;
         }
     }
 
@@ -61,7 +61,7 @@ class BooleanField extends Field
                 "Invalid value for '%s': %s (expected 1, 0, true, or false)",
                 $this->name,
                 $value
-            ));
+            ), $this);
         }
     }
 }

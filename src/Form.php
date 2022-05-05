@@ -2,6 +2,7 @@
 
 namespace Platformsh\ConsoleForm;
 
+use Platformsh\ConsoleForm\Exception\ConditionalFieldException;
 use Platformsh\ConsoleForm\Exception\InvalidValueException;
 use Platformsh\ConsoleForm\Exception\MissingValueException;
 use Platformsh\ConsoleForm\Field\Field;
@@ -114,6 +115,9 @@ class Form
             $field->onChange($values);
 
             if (!$this->includeField($field, $values)) {
+                if ($field->getValueFromInput($input, false) !== null) {
+                    throw new ConditionalFieldException('--' . $field->getOptionName() . ' is not applicable', $field, $values);
+                }
                 continue;
             }
 
@@ -126,7 +130,7 @@ class Form
                 $value = $helper->ask($input, $stdErr, $field->getAsQuestion());
                 $stdErr->writeln('');
             } elseif ($field->isRequired() && !$field->hasDefault()) {
-                throw new MissingValueException('--' . $field->getOptionName() . ' is required');
+                throw new MissingValueException('--' . $field->getOptionName() . ' is required', $field);
             }
 
             self::setNestedArrayValue(
