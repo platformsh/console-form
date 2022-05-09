@@ -90,6 +90,40 @@ class Form
     }
 
     /**
+     * Validates command-line input, partially, without using interaction.
+     *
+     * @param InputInterface $input
+     *
+     * @return void
+     */
+    public function validateInputBeforeInteraction(InputInterface $input)
+    {
+        $values = [];
+        foreach ($this->fields as $key => $field) {
+            $field->onChange($values);
+
+            if (!$this->includeField($field, $values)) {
+                if ($field->getValueFromInput($input, false) !== null) {
+                    throw new ConditionalFieldException('--' . $field->getOptionName() . ' is not applicable', $field, $values);
+                }
+                continue;
+            }
+
+            $value = $field->getValueFromInput($input, false);
+            if ($value !== null) {
+                $field->validate($value);
+            }
+
+            self::setNestedArrayValue(
+                $values,
+                $field->getValueKeys() ?: [$key],
+                $field->getFinalValue($value),
+                true
+            );
+        }
+    }
+
+    /**
      * Validate specified options, and ask questions for any missing values.
      *
      * Values can come from three sources at the moment:
@@ -100,6 +134,7 @@ class Form
      * @param InputInterface $input
      * @param OutputInterface $output
      * @param QuestionHelper $helper
+     * @param Context|null $context
      *
      * @throws InvalidValueException if any of the input was invalid.
      *
@@ -107,8 +142,16 @@ class Form
      *   An array of normalized field values. The array keys match those
      *   provided as the second argument to self::addField().
      */
-    public function resolveOptions(InputInterface $input, OutputInterface $output, QuestionHelper $helper)
+    public function resolveOptions(InputInterface $input, OutputInterface $output, QuestionHelper $helper, Context $context = null)
     {
+        $context = $context ?: new Context();
+        try {
+            $context->beforeInteraction = true;
+            $this->validateInputBeforeInteraction($input);
+        } finally {
+            $context->beforeInteraction = false;
+        }
+
         $values = [];
         $stdErr = $output instanceof ConsoleOutput ? $output->getErrorOutput() : $output;
         foreach ($this->fields as $key => $field) {

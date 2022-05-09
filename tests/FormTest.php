@@ -323,7 +323,7 @@ class FormTest extends TestCase
         ], $definition);
         $input->setInteractive(false);
         $this->expectException(ConditionalFieldException::class);
-        $this->form->resolveOptions($input, $output, $helper);
+        $this->form->validateInputBeforeInteraction($input);
     }
 
     public function testOptionsField()
