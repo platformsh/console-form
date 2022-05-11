@@ -12,6 +12,7 @@ use Platformsh\ConsoleForm\Field\EmailAddressField;
 use Platformsh\ConsoleForm\Field\Field;
 use Platformsh\ConsoleForm\Field\FileField;
 use Platformsh\ConsoleForm\Field\OptionsField;
+use Platformsh\ConsoleForm\Field\UrlField;
 use Platformsh\ConsoleForm\Form;
 use Symfony\Component\Console\Helper\FormatterHelper;
 use Symfony\Component\Console\Helper\HelperSet;
@@ -81,6 +82,10 @@ class FormTest extends TestCase
             'optionName' => 'array',
             'required' => false,
           ]),
+          'url' => new UrlField('URL field', [
+            'optionName' => 'url',
+            'required' => false,
+          ]),
           'file' => new FileField('JSON file', [
               'optionName' => 'file',
               'required' => false,
@@ -104,6 +109,7 @@ class FormTest extends TestCase
           'email' => $this->validMail,
           'bool' => true,
           'array' => [],
+          'url' => null,
           'with_default' => 'defaultValue',
           'with_dynamic_default' => $this->validString,
           'options_with_dynamic_default' => $this->validOptionsDynamicDefault,
@@ -497,6 +503,36 @@ class FormTest extends TestCase
         $input->setInteractive(false);
         $result = $this->form->resolveOptions($input, new NullOutput(), $this->getQuestionHelper());
         $this->assertEquals($validResult, $result, 'Array input with array values passes');
+    }
+
+    public function testUrlField()
+    {
+      $definition = new InputDefinition();
+      $this->form->configureInputDefinition($definition);
+
+      $validResult = $this->validResult;
+      $validResult['url'] = 'https://example.com';
+
+      $input = new ArgvInput([
+        'commandName',
+        '--test', $this->validString,
+        '--mail', $this->validMail,
+        '--url', 'https://example.com',
+      ], $definition);
+      $input->setInteractive(false);
+      $result = $this->form->resolveOptions($input, new NullOutput(), $this->getQuestionHelper());
+      $this->assertEquals($validResult, $result, 'URL input with valid URL passes');
+
+      $input = new ArgvInput([
+        'commandName',
+        '--test', $this->validString,
+        '--mail', $this->validMail,
+        '--url', 'example.com',
+      ], $definition);
+      $input->setInteractive(false);
+      $this->expectException(InvalidValueException::class);
+      $this->form->resolveOptions($input, new NullOutput(), $this->getQuestionHelper());
+      $this->assertEquals($validResult, $result, 'URL input with invalid URL fails');
     }
 
     public function testPresetInputOptions()
