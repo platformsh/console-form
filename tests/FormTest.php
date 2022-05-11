@@ -313,6 +313,15 @@ class FormTest extends TestCase
             ];
         $this->assertEquals($validResult, $result, 'Dependent field does appear');
 
+        // Test providing a value for the dependent field, without making it
+        // applicable yet: validating "before interaction" should pass.
+        $input = new ArrayInput([
+            '--test' => $this->validString,
+            '--mail' => $this->validMail,
+            '--dependent' => 'value',
+        ], $definition);
+        $this->form->validateInputBeforeInteraction($input);
+
         // Test providing a value for the dependent field even though it is not
         // applicable.
         $input = new ArrayInput([
@@ -321,7 +330,6 @@ class FormTest extends TestCase
             '--dependency' => 'doNotTrigger',
             '--dependent' => 'value',
         ], $definition);
-        $input->setInteractive(false);
         $this->expectException(ConditionalFieldException::class);
         $this->form->validateInputBeforeInteraction($input);
     }

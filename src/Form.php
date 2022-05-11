@@ -102,7 +102,7 @@ class Form
         foreach ($this->fields as $key => $field) {
             $field->onChange($values);
 
-            if (!$this->includeField($field, $values)) {
+            if (!$this->includeField($field, $values, true)) {
                 if ($field->getValueFromInput($input, false) !== null) {
                     throw new ConditionalFieldException('--' . $field->getOptionName() . ' is not applicable', $field, $values);
                 }
@@ -192,16 +192,21 @@ class Form
      *
      * @param Field $field
      * @param array $previousValues
+     * @param bool  $ignoreUnsetValues
      *
      * @return bool
      */
-    public function includeField(Field $field, array $previousValues)
+    public function includeField(Field $field, array $previousValues, $ignoreUnsetValues = false)
     {
         foreach ($field->getConditions() as $previousField => $condition) {
             $previousFieldObject = $this->getField($previousField);
-            if ($previousFieldObject === false
-                || !isset($previousValues[$previousField])
-                || !$previousFieldObject->matchesCondition($previousValues[$previousField], $condition)) {
+            if ($previousFieldObject === false || !isset($previousValues[$previousField])) {
+                if ($ignoreUnsetValues) {
+                    continue;
+                }
+                return false;
+            }
+            if (!$previousFieldObject->matchesCondition($previousValues[$previousField], $condition)) {
                 return false;
             }
         }
