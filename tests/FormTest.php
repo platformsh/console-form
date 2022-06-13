@@ -20,7 +20,9 @@ use Symfony\Component\Console\Helper\QuestionHelper;
 use Symfony\Component\Console\Input\ArgvInput;
 use Symfony\Component\Console\Input\ArrayInput;
 use Symfony\Component\Console\Input\InputDefinition;
+use Symfony\Component\Console\Output\BufferedOutput;
 use Symfony\Component\Console\Output\NullOutput;
+use Symfony\Component\Console\Output\OutputInterface;
 
 class FormTest extends TestCase
 {
@@ -410,6 +412,28 @@ class FormTest extends TestCase
         $validResult = $this->validResult;
         $validResult['options_with_dynamic_default'] = 'baz';
         $this->assertEquals($validResult, $result, 'Dynamic option default worked');
+    }
+
+    public function testAvoidQuestion()
+    {
+        $definition = new InputDefinition();
+        $defaultValue = 'default value for avoided question';
+        $this->form->addField(new Field('Field avoiding unnecessary question', ['avoidQuestion' => true, 'default' => $defaultValue]), 'avoid_question');
+        $this->form->configureInputDefinition($definition);
+        $input = new ArrayInput(['--test' => $this->validString, '--mail' => $this->validMail], $definition);
+        $input->setStream($this->getInputStream(str_repeat("\n", count($this->form->getFields()))));
+        $output = new BufferedOutput(OutputInterface::VERBOSITY_NORMAL, true);
+        $result = $this->form->resolveOptions($input, $output, $this->getQuestionHelper());
+        $this->assertNotContains('avoiding', $output->fetch());
+        $this->assertEquals($this->validResult + ['avoid_question' => $defaultValue], $result);
+
+        $definition = new InputDefinition();
+        $this->form->addField(new Field('Field with avoidQuestion needing question', ['avoidQuestion' => true]), 'trigger_question');
+        $this->form->configureInputDefinition($definition);
+        $input = new ArrayInput(['--test' => $this->validString, '--mail' => $this->validMail], $definition);
+        $input->setStream($this->getInputStream(str_repeat("\n", count($this->form->getFields()))));
+        $this->expectExceptionMessage("'Field with avoidQuestion needing question' is required");
+        $this->form->resolveOptions($input, new NullOutput(), $this->getQuestionHelper());
     }
 
     public function testCustomValidator()

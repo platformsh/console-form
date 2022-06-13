@@ -168,7 +168,7 @@ class Form
             $value = $field->getValueFromInput($input, false);
             if ($value !== null) {
                 $field->validate($value);
-            } elseif ($input->isInteractive()) {
+            } elseif ($input->isInteractive() && $field->shouldAskAsQuestion()) {
                 // Get the value interactively.
                 $value = $helper->ask($input, $stdErr, $field->getAsQuestion());
                 $stdErr->writeln('');

@@ -173,6 +173,13 @@ class Field
     protected $valueKeys = [];
 
     /**
+     * Avoids asking the field as a question, if it already has a default or is not required.
+     *
+     * @var bool
+     */
+    protected $avoidQuestion;
+
+    /**
      * Constructor.
      *
      * @param string $name
@@ -378,6 +385,19 @@ class Field
         }
 
         return $header;
+    }
+
+    /**
+     * Returns whether the field should be asked as a Console question.
+     *
+     * @return bool
+     */
+    public function shouldAskAsQuestion()
+    {
+        if ($this->avoidQuestion) {
+            return $this->isRequired() && !$this->hasDefault();
+        }
+        return true;
     }
 
     /**
