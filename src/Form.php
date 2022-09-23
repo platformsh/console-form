@@ -111,7 +111,7 @@ class Form
 
             $value = $field->getValueFromInput($input, false);
             if ($value !== null) {
-                $field->validate($value);
+                $field->validate($value, true);
             }
 
             self::setNestedArrayValue(
@@ -167,7 +167,7 @@ class Form
             // Get the value from the command-line options.
             $value = $field->getValueFromInput($input, false);
             if ($value !== null) {
-                $field->validate($value);
+                $field->validate($value, true);
             } elseif ($input->isInteractive() && $field->shouldAskAsQuestion()) {
                 // Get the value interactively.
                 $value = $helper->ask($input, $stdErr, $field->getAsQuestion());

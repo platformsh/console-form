@@ -292,8 +292,10 @@ class Field
      *
      * @param mixed $value
      *   The user-entered value.
+     * @param bool $fromOption
+     *   Whether the validation is from a command-line option. This changes the default error message.
      */
-    public function validate($value)
+    public function validate($value, $fromOption = false)
     {
         if ($value === null) {
             return;
@@ -305,7 +307,10 @@ class Field
             if (is_string($result)) {
                 throw new InvalidValueException($result, $this);
             } elseif ($result === false) {
-                throw new InvalidValueException("Invalid value for '{$this->name}': $value", $this);
+                $defaultMessage = $fromOption
+                  ? sprintf('Invalid value for --%s: %s', $this->getOptionName(), $value)
+                  : sprintf("Invalid value for '%s': %s", $this->name, $value);
+                throw new InvalidValueException($defaultMessage, $this);
             }
         }
     }
