@@ -2,6 +2,8 @@
 
 namespace Platformsh\ConsoleForm\Field;
 
+use Platformsh\ConsoleForm\Exception\InvalidValueException;
+use Platformsh\ConsoleForm\Exception\MissingValueException;
 use Symfony\Component\Console\Question\ChoiceQuestion;
 
 class OptionsField extends Field
@@ -99,6 +101,26 @@ class OptionsField extends Field
         if (!$numeric) {
             $question->setAutocompleterValues(array_keys($this->options));
         }
+        $question->setValidator(function ($userInput) use ($numeric) {
+            if ($this->isEmpty($userInput) && $this->isRequired()) {
+                if ($this->hasDefault()) {
+                    return $this->default;
+                }
+                throw new MissingValueException("'{$this->name}' is required", $this);
+            }
+            if (isset($this->options[$userInput])) {
+                $value = $numeric ? $this->options[$userInput] : $userInput;
+            } elseif (($key = array_search($userInput, $this->options, true)) !== false) {
+                $value = $numeric ? $userInput : $key;
+            } elseif ($this->allowOther) {
+                $value = $userInput;
+            } else {
+                throw new InvalidValueException(\sprintf('Value "%s" is invalid!', $userInput), $this);
+            }
+            $this->validate($value);
+
+            return $value;
+        });
 
         return $question;
     }

@@ -359,6 +359,15 @@ class FormTest extends TestCase
             'options' => ['option1' => 'Option 1', 'option2' => 'Option 2', 'option3' => 'Option 3'],
             'optionName' => 'options-assoc',
         ]), 'options-assoc');
+        $customValidatorLastValue = null;
+        $this->form->addField(new OptionsField('Associative options with custom validator', [
+          'options' => ['option1' => 'Option 1', 'option2' => 'Option 2', 'option3' => 'Option 3'],
+          'optionName' => 'options-assoc-custom-validator',
+          'validator' => function ($value) use (&$customValidatorLastValue) {
+            $customValidatorLastValue = $value;
+            return true;
+          },
+        ]), 'options-assoc-custom-validator');
         $this->form->configureInputDefinition($definition);
         $output = new NullOutput();
 
@@ -369,6 +378,7 @@ class FormTest extends TestCase
             '--options' => 'option1',
             '--options-allow-other' => 'optionO',
             '--options-assoc' => 'option2',
+            '--options-assoc-custom-validator' => 'option1',
         ], $definition);
         $input->setInteractive(false);
         $result = $this->form->resolveOptions($input, $output, $helper);
@@ -376,8 +386,11 @@ class FormTest extends TestCase
             'options' => 'option1',
             'options_non_strict' => 'optionO',
             'options-assoc' => 'option2',
+            'options-assoc-custom-validator' => 'option1',
         ];
         $this->assertEquals($validResult, $result, 'Valid non-interactive option input');
+        $this->assertEquals('option1', $customValidatorLastValue, 'Custom validator called with expected value');
+        $customValidatorLastValue = null;
 
         // Test interactive input.
         $input = new ArrayInput([
@@ -385,13 +398,15 @@ class FormTest extends TestCase
             '--mail' => $this->validMail,
             '--options-allow-other' => 'optionO',
         ], $definition);
-        $input->setStream($this->getInputStream(str_repeat("\n", $countFieldsBefore) . "1\noption2"));
+        $input->setStream($this->getInputStream(str_repeat("\n", $countFieldsBefore) . "1\noption2\noption3"));
         $result = $this->form->resolveOptions($input, $output, $helper);
         $validResult = $this->validResult + [
             'options' => 'option2',
             'options_non_strict' => 'optionO',
             'options-assoc' => 'option2',
+            'options-assoc-custom-validator' => 'option3',
         ];
+        $this->assertEquals('option3', $customValidatorLastValue, 'Custom validator called with expected value');
         $this->assertEquals($validResult, $result, 'Valid interactive option input');
     }
 
