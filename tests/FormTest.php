@@ -369,9 +369,9 @@ class FormTest extends TestCase
           },
         ]), 'options-assoc-custom-validator');
         $this->form->configureInputDefinition($definition);
-        $output = new NullOutput();
 
         // Test non-interactive input.
+        $output = new NullOutput();
         $input = new ArrayInput([
             '--test' => $this->validString,
             '--mail' => $this->validMail,
@@ -393,18 +393,26 @@ class FormTest extends TestCase
         $customValidatorLastValue = null;
 
         // Test interactive input.
+        // N.B. replacing this with an instance of ConsoleOutput can help debugging as it displays the form as it's
+        // filled in.
+        $output = new NullOutput();
+        $this->form->addField(new OptionsField('Associative options, choosing with number', [
+            'options' => ['option1' => 'Option 1', 'option2' => 'Option 2', 'option3' => 'Option 3'],
+            'chooseWithNumber' => true,
+        ]), 'options-assoc-number');
         $input = new ArrayInput([
             '--test' => $this->validString,
             '--mail' => $this->validMail,
             '--options-allow-other' => 'optionO',
         ], $definition);
-        $input->setStream($this->getInputStream(str_repeat("\n", $countFieldsBefore) . "1\noption2\noption3"));
+        $input->setStream($this->getInputStream(str_repeat("\n", $countFieldsBefore) . "1\noption2\noption3\n2"));
         $result = $this->form->resolveOptions($input, $output, $helper);
         $validResult = $this->validResult + [
             'options' => 'option2',
             'options_non_strict' => 'optionO',
             'options-assoc' => 'option2',
             'options-assoc-custom-validator' => 'option3',
+            'options-assoc-number' => 'option3',
         ];
         $this->assertEquals('option3', $customValidatorLastValue, 'Custom validator called with expected value');
         $this->assertEquals($validResult, $result, 'Valid interactive option input');

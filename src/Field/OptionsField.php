@@ -12,6 +12,7 @@ class OptionsField extends Field
     protected $asChoice = true;
     protected $allowOther = false;
     protected $autoDescribe = true;
+    protected $chooseWithNumber = false;
 
     /**
      * A callback used to calculate dynamic options.
@@ -87,13 +88,12 @@ class OptionsField extends Field
     {
         $numeric = $this->isNumeric();
         $text = $this->getQuestionHeader();
-        if ($numeric) {
+        if ($numeric || $this->chooseWithNumber) {
             $text .= "\nEnter a number to choose: ";
         }
-
         $question = new ChoiceQuestion(
             $text,
-            $this->options,
+            $this->chooseWithNumber ? array_values($this->options) : $this->options,
             $this->default
         );
         $question->setPrompt($this->prompt);
@@ -107,6 +107,9 @@ class OptionsField extends Field
                     return $this->default;
                 }
                 throw new MissingValueException("'{$this->name}' is required", $this);
+            }
+            if ($this->chooseWithNumber && isset(array_values($this->options)[$userInput])) {
+                $userInput = array_values($this->options)[$userInput];
             }
             if (isset($this->options[$userInput])) {
                 $value = $numeric ? $this->options[$userInput] : $userInput;
