@@ -118,7 +118,7 @@ class OptionsField extends Field
             } elseif ($this->allowOther) {
                 $value = $userInput;
             } else {
-                throw new InvalidValueException(\sprintf('Value "%s" is invalid!', $userInput), $this);
+                throw new InvalidValueException(\sprintf('Value "%s" is invalid', $userInput), $this);
             }
             $this->validate($value);
 
