@@ -115,10 +115,8 @@ class OptionsField extends Field
                 $value = $numeric ? $this->options[$userInput] : $userInput;
             } elseif (($key = array_search($userInput, $this->options, true)) !== false) {
                 $value = $numeric ? $userInput : $key;
-            } elseif ($this->allowOther) {
-                $value = $userInput;
             } else {
-                throw new InvalidValueException(\sprintf('Value "%s" is invalid', $userInput), $this);
+                $value = $userInput;
             }
             $this->validate($value);
 
