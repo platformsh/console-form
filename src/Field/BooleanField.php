@@ -16,6 +16,7 @@ class BooleanField extends Field
         if (!isset($this->defaultCallback) && !isset($this->default)) {
             $this->default = $this->originalDefault = true;
         }
+        $this->autoCompleterValues = ['true', 'false', 'yes', 'no'];
     }
 
    /**
@@ -24,9 +25,9 @@ class BooleanField extends Field
     protected function getQuestionText()
     {
         return rtrim($this->getQuestionHeader(false), '?')
-          . '? <question>['
-          . ($this->default ? 'Y|n' : 'y|N')
-          . ']</question> ';
+          . '? [default: <question>'
+          . ($this->default ? 'true' : 'false')
+          . '</question>] ';
     }
 
     /**
