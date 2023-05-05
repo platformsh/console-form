@@ -6,7 +6,13 @@ use Symfony\Component\Console\Input\InputOption;
 
 class ArrayField extends Field
 {
+    const SPLIT_PATTERN_COMMA_WHITESPACE = '/[,\s]+/';
+    const SPLIT_PATTERN_COMMA_NEWLINE = '/[,\r\n]+/';
+    const SPLIT_PATTERN_NEWLINE = '/[\r\n]+/';
+
     public $default = [];
+
+    protected $splitPattern = self::SPLIT_PATTERN_COMMA_WHITESPACE;
 
     /**
      * {@inheritdoc}
@@ -36,7 +42,7 @@ class ArrayField extends Field
      * @return array
      */
     private function split($str) {
-        return array_filter(preg_split('/[,\s]+/', $str), 'strlen');
+        return array_filter(preg_split($this->splitPattern, $str), 'strlen');
     }
 
     /**
@@ -48,9 +54,11 @@ class ArrayField extends Field
         if (!empty($this->default)) {
             $text .= "\n" . 'Default: <question>' . implode(', ', (array) $this->default) . '</question>';
         }
-        $text .= "\nEnter comma-separated values";
-        if (!$this->isRequired()) {
-            $text .= ' (or leave this blank)';
+        if ($this->splitPattern === self::SPLIT_PATTERN_COMMA_NEWLINE || $this->splitPattern === self::SPLIT_PATTERN_COMMA_WHITESPACE) {
+            $text .= "\nEnter comma-separated values";
+            if (!$this->isRequired()) {
+                $text .= ' (or leave this blank)';
+            }
         }
         $text .= "\n" . $this->prompt;
 
