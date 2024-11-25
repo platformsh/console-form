@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Platformsh\ConsoleForm;
 
 /**
@@ -7,6 +9,5 @@ namespace Platformsh\ConsoleForm;
  */
 class Context
 {
-    /** @var bool */
-    public $beforeInteraction = false;
+    public bool $beforeInteraction = false;
 }

@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Platformsh\ConsoleForm\Tests;
 
 use PHPUnit\Framework\TestCase;
@@ -26,99 +28,113 @@ use Symfony\Component\Console\Output\OutputInterface;
 
 class FormTest extends TestCase
 {
-    /** @var Form */
+    /**
+     * @var Form
+     */
     protected $form;
 
-    /** @var array */
+    /**
+     * @var array
+     */
     protected $fields = [];
 
-    /** @var string */
+    /**
+     * @var string
+     */
     protected $validString = 'validString';
 
-    /** @var string */
+    /**
+     * @var string
+     */
     protected $validMail = 'valid@example.com';
 
-    /** @var string */
+    /**
+     * @var string
+     */
     protected $validOptionsDynamicDefault = 'foo';
 
-    /** @var array */
+    /**
+     * @var array
+     */
     protected $validResult = [];
 
-    protected function setUp()
+    protected function setUp(): void
     {
         $this->fields = [
-          'test_field' => new Field('Test field', [
-            'optionName' => 'test',
-            'validator' => function ($value) {
-                return $value === $this->validString;
-            },
-          ]),
-          'email' => new EmailAddressField('Email address', [
-            'optionName' => 'mail',
-          ]),
-          'non_option_field' => new Field('Form-only field not being included as an option', [
-            'optionName' => 'non-option-field',
-            'includeAsOption' => false,
-            'required' => false,
-          ]),
-          'with_default' => new Field('Field with default', [
-            'default' => 'defaultValue',
-          ]),
-          'with_dynamic_default' => new Field('Field with dynamic default', [
-            'defaultCallback' => function (array $values) {
-                return $values['test_field'];
-            },
-          ]),
-          'options_with_dynamic_default' => new OptionsField('Options with dynamic default', [
-            'optionName' => 'options-dyn-default',
-            'options' => ['foo', 'bar', 'baz'],
-            'defaultCallback' => function () {
-              return $this->validOptionsDynamicDefault;
-            },
-          ]),
-          'bool' => new BooleanField('Boolean field', [
-            'optionName' => 'bool',
-            'required' => false,
-          ]),
-          'array' => new ArrayField('Array field', [
-            'optionName' => 'array',
-            'required' => false,
-          ]),
-          'url' => new UrlField('URL field', [
-            'optionName' => 'url',
-            'required' => false,
-          ]),
-          'file' => new FileField('JSON file', [
-              'optionName' => 'file',
-              'required' => false,
-              'requireExists' => false,
-              'allowedExtensions' => ['json', ''],
-          ]),
-          'custom_value_keys1' => new BooleanField('Field with custom value keys 1', [
-            'optionName' => 'custom-keys-1',
-            'default' => false,
-            'valueKeys' => ['foo1'],
-          ]),
-          'custom_value_keys2' => new BooleanField('Field with custom value keys 2', [
-            'optionName' => 'custom-keys-2',
-            'default' => true,
-            'valueKeys' => ['foo2', 'bar'],
-          ]),
+            'test_field' => new Field('Test field', [
+                'optionName' => 'test',
+                'validator' => function ($value) {
+                    return $value === $this->validString;
+                },
+            ]),
+            'email' => new EmailAddressField('Email address', [
+                'optionName' => 'mail',
+            ]),
+            'non_option_field' => new Field('Form-only field not being included as an option', [
+                'optionName' => 'non-option-field',
+                'includeAsOption' => false,
+                'required' => false,
+            ]),
+            'with_default' => new Field('Field with default', [
+                'default' => 'defaultValue',
+            ]),
+            'with_dynamic_default' => new Field('Field with dynamic default', [
+                'defaultCallback' => function (array $values) {
+                    return $values['test_field'];
+                },
+            ]),
+            'options_with_dynamic_default' => new OptionsField('Options with dynamic default', [
+                'optionName' => 'options-dyn-default',
+                'options' => ['foo', 'bar', 'baz'],
+                'defaultCallback' => function () {
+                    return $this->validOptionsDynamicDefault;
+                },
+            ]),
+            'bool' => new BooleanField('Boolean field', [
+                'optionName' => 'bool',
+                'required' => false,
+            ]),
+            'array' => new ArrayField('Array field', [
+                'optionName' => 'array',
+                'required' => false,
+            ]),
+            'url' => new UrlField('URL field', [
+                'optionName' => 'url',
+                'required' => false,
+            ]),
+            'file' => new FileField('JSON file', [
+                'optionName' => 'file',
+                'required' => false,
+                'requireExists' => false,
+                'allowedExtensions' => ['json', ''],
+            ]),
+            'custom_value_keys1' => new BooleanField('Field with custom value keys 1', [
+                'optionName' => 'custom-keys-1',
+                'default' => false,
+                'valueKeys' => ['foo1'],
+            ]),
+            'custom_value_keys2' => new BooleanField('Field with custom value keys 2', [
+                'optionName' => 'custom-keys-2',
+                'default' => true,
+                'valueKeys' => ['foo2', 'bar'],
+            ]),
         ];
         $this->form = Form::fromArray($this->fields);
         $this->validResult = [
-          'test_field' => $this->validString,
-          'email' => $this->validMail,
-          'bool' => true,
-          'array' => [],
-          'url' => null,
-          'with_default' => 'defaultValue',
-          'with_dynamic_default' => $this->validString,
-          'options_with_dynamic_default' => $this->validOptionsDynamicDefault,
-          'foo1' => false,
-          'foo2' => ['bar' => true],
-          'file' => null,
-          'non_option_field' => null,
+            'test_field' => $this->validString,
+            'email' => $this->validMail,
+            'bool' => true,
+            'array' => [],
+            'url' => null,
+            'with_default' => 'defaultValue',
+            'with_dynamic_default' => $this->validString,
+            'options_with_dynamic_default' => $this->validOptionsDynamicDefault,
+            'foo1' => false,
+            'foo2' => [
+                'bar' => true,
+            ],
+            'file' => null,
+            'non_option_field' => null,
         ];
     }
 
@@ -138,8 +154,8 @@ class FormTest extends TestCase
         $this->assertEquals($this->validResult, $result, 'Valid input passes');
 
         $input = new ArrayInput([
-          '--test' => 'invalidString',
-          '--mail' => 'invalidMail',
+            '--test' => 'invalidString',
+            '--mail' => 'invalidMail',
         ], $definition);
         $input->setInteractive(false);
         $this->expectException('\\Platformsh\\ConsoleForm\\Exception\\InvalidValueException');
@@ -193,18 +209,22 @@ class FormTest extends TestCase
         $this->form->configureInputDefinition($definition);
         $output = new NullOutput();
 
-        $input = new ArrayInput(['--mail' => $this->validMail], $definition);
+        $input = new ArrayInput([
+            '--mail' => $this->validMail,
+        ], $definition);
         $input->setStream($this->getInputStream(
-          "{$this->validString}\n" .  str_repeat("\n", count($this->form->getFields()) - 1)
+            "{$this->validString}\n" . str_repeat("\n", count($this->form->getFields()) - 1)
         ));
         $result = $this->form->resolveOptions($input, $output, $helper);
         $this->assertEquals($this->validResult, $result, 'Valid input passes');
 
         $this->expectException(InvalidValueException::class);
-        $input = new ArrayInput(['--test' => 'invalidString'], $definition);
+        $input = new ArrayInput([
+            '--test' => 'invalidString',
+        ], $definition);
         $input->setStream($this->getInputStream("{$this->validMail}\n"));
         $result = $this->form->resolveOptions($input, $output, $helper);
-        $this->assertEquals(false, $result, 'Invalid input fails');
+        $this->assertFalse($result, 'Invalid input fails');
     }
 
     public function testNormalizedInput()
@@ -221,13 +241,15 @@ class FormTest extends TestCase
         $output = new NullOutput();
 
         $input = new ArrayInput([
-          '--test' => $this->validString,
-          '--mail' => $this->validMail,
-          '--to-upper' => 'testString',
+            '--test' => $this->validString,
+            '--mail' => $this->validMail,
+            '--to-upper' => 'testString',
         ], $definition);
         $input->setInteractive(false);
         $result = $this->form->resolveOptions($input, $output, $helper);
-        $validResult = $this->validResult + ['to_upper' => 'TESTSTRING'];
+        $validResult = $this->validResult + [
+            'to_upper' => 'TESTSTRING',
+        ];
         $this->assertEquals($validResult, $result, 'Input has been normalized');
     }
 
@@ -237,7 +259,9 @@ class FormTest extends TestCase
         $definition = new InputDefinition();
         $this->form->addField(new Field('Dependency'), 'dependency');
         $this->form->addField(new Field('Dependent', [
-            'conditions' => ['dependency' => 'doTrigger'],
+            'conditions' => [
+                'dependency' => 'doTrigger',
+            ],
         ]), 'dependent');
         $this->form->configureInputDefinition($definition);
         $output = new NullOutput();
@@ -251,7 +275,7 @@ class FormTest extends TestCase
         $input->setInteractive(false);
         $result = $this->form->resolveOptions($input, $output, $helper);
         $validResult = $this->validResult + [
-            'dependency' => 'doNotTrigger'
+            'dependency' => 'doNotTrigger',
         ];
         $this->assertEquals($validResult, $result, 'Dependent field does not appear');
 
@@ -290,7 +314,9 @@ class FormTest extends TestCase
             'options' => ['doTrigger', 'doTrigger2', 'doNotTrigger'],
         ]), 'dependency');
         $this->form->addField(new Field('Dependent', [
-            'conditions' => ['dependency' => ['doTrigger', 'doTrigger2']],
+            'conditions' => [
+                'dependency' => ['doTrigger', 'doTrigger2'],
+            ],
         ]), 'dependent');
         $this->form->configureInputDefinition($definition);
         $output = new NullOutput();
@@ -303,7 +329,9 @@ class FormTest extends TestCase
         ], $definition);
         $input->setInteractive(false);
         $result = $this->form->resolveOptions($input, $output, $helper);
-        $validResult = $this->validResult + ['dependency' => 'doNotTrigger'];
+        $validResult = $this->validResult + [
+            'dependency' => 'doNotTrigger',
+        ];
         $this->assertEquals($validResult, $result, 'Dependent field does not appear');
 
         // Test triggering the dependent field and providing a value.
@@ -316,9 +344,9 @@ class FormTest extends TestCase
         $input->setInteractive(false);
         $result = $this->form->resolveOptions($input, $output, $helper);
         $validResult = $this->validResult + [
-                'dependency' => 'doTrigger',
-                'dependent' => 'value',
-            ];
+            'dependency' => 'doTrigger',
+            'dependent' => 'value',
+        ];
         $this->assertEquals($validResult, $result, 'Dependent field does appear');
 
         // Test providing a value for the dependent field, without making it
@@ -356,17 +384,25 @@ class FormTest extends TestCase
             'optionName' => 'options-allow-other',
         ]), 'options_non_strict');
         $this->form->addField(new OptionsField('Associative options', [
-            'options' => ['option1' => 'Option 1', 'option2' => 'Option 2', 'option3' => 'Option 3'],
+            'options' => [
+                'option1' => 'Option 1',
+                'option2' => 'Option 2',
+                'option3' => 'Option 3',
+            ],
             'optionName' => 'options-assoc',
         ]), 'options-assoc');
         $customValidatorLastValue = null;
         $this->form->addField(new OptionsField('Associative options with custom validator', [
-          'options' => ['option1' => 'Option 1', 'option2' => 'Option 2', 'option3' => 'Option 3'],
-          'optionName' => 'options-assoc-custom-validator',
-          'validator' => function ($value) use (&$customValidatorLastValue) {
-            $customValidatorLastValue = $value;
-            return true;
-          },
+            'options' => [
+                'option1' => 'Option 1',
+                'option2' => 'Option 2',
+                'option3' => 'Option 3',
+            ],
+            'optionName' => 'options-assoc-custom-validator',
+            'validator' => function ($value) use (&$customValidatorLastValue) {
+                $customValidatorLastValue = $value;
+                return true;
+            },
         ]), 'options-assoc-custom-validator');
         $this->form->configureInputDefinition($definition);
 
@@ -397,7 +433,11 @@ class FormTest extends TestCase
         // filled in.
         $output = new NullOutput();
         $this->form->addField(new OptionsField('Associative options, choosing with number', [
-            'options' => ['option1' => 'Option 1', 'option2' => 'Option 2', 'option3' => 'Option 3'],
+            'options' => [
+                'option1' => 'Option 1',
+                'option2' => 'Option 2',
+                'option3' => 'Option 3',
+            ],
             'chooseWithNumber' => true,
         ]), 'options-assoc-number');
         $input = new ArrayInput([
@@ -441,19 +481,32 @@ class FormTest extends TestCase
     {
         $definition = new InputDefinition();
         $defaultValue = 'default value for avoided question';
-        $this->form->addField(new Field('Field avoiding unnecessary question', ['avoidQuestion' => true, 'default' => $defaultValue]), 'avoid_question');
+        $this->form->addField(new Field('Field avoiding unnecessary question', [
+            'avoidQuestion' => true,
+            'default' => $defaultValue,
+        ]), 'avoid_question');
         $this->form->configureInputDefinition($definition);
-        $input = new ArrayInput(['--test' => $this->validString, '--mail' => $this->validMail], $definition);
+        $input = new ArrayInput([
+            '--test' => $this->validString,
+            '--mail' => $this->validMail,
+        ], $definition);
         $input->setStream($this->getInputStream(str_repeat("\n", count($this->form->getFields()))));
         $output = new BufferedOutput(OutputInterface::VERBOSITY_NORMAL, true);
         $result = $this->form->resolveOptions($input, $output, $this->getQuestionHelper());
-        $this->assertNotContains('avoiding', $output->fetch());
-        $this->assertEquals($this->validResult + ['avoid_question' => $defaultValue], $result);
+        $this->assertStringNotContainsString('avoiding', $output->fetch());
+        $this->assertEquals($this->validResult + [
+            'avoid_question' => $defaultValue,
+        ], $result);
 
         $definition = new InputDefinition();
-        $this->form->addField(new Field('Field with avoidQuestion needing question', ['avoidQuestion' => true]), 'trigger_question');
+        $this->form->addField(new Field('Field with avoidQuestion needing question', [
+            'avoidQuestion' => true,
+        ]), 'trigger_question');
         $this->form->configureInputDefinition($definition);
-        $input = new ArrayInput(['--test' => $this->validString, '--mail' => $this->validMail], $definition);
+        $input = new ArrayInput([
+            '--test' => $this->validString,
+            '--mail' => $this->validMail,
+        ], $definition);
         $input->setStream($this->getInputStream(str_repeat("\n", count($this->form->getFields()))));
         $this->expectExceptionMessage("'Field with avoidQuestion needing question' is required");
         $this->form->resolveOptions($input, new NullOutput(), $this->getQuestionHelper());
@@ -479,7 +532,9 @@ class FormTest extends TestCase
         ], $definition);
         $input->setInteractive(false);
         $result = $this->form->resolveOptions($input, $output, $helper);
-        $validResult = $this->validResult + ['custom_validated' => 'valid'];
+        $validResult = $this->validResult + [
+            'custom_validated' => 'valid',
+        ];
         $this->assertEquals($validResult, $result);
 
         $input = new ArrayInput([
@@ -496,27 +551,29 @@ class FormTest extends TestCase
     public function testInvalidConfig()
     {
         $this->expectException('InvalidArgumentException');
-        new Field('Test field', ['invalid' => 'invalid']);
+        new Field('Test field', [
+            'invalid' => 'invalid',
+        ]);
     }
 
     public function testOverrideField()
     {
-      $fields = $this->fields;
-      $validResult = $this->validResult;
-      $validResult['test_field'] = 'Default result for test_field';
-      $validResult['with_dynamic_default'] = $validResult['test_field'];
-      $validResult['email'] = 'test-default@example.com';
-      $fields['test_field']->set('default', $validResult['test_field']);
-      $fields['email']->set('default', $validResult['email']);
+        $fields = $this->fields;
+        $validResult = $this->validResult;
+        $validResult['test_field'] = 'Default result for test_field';
+        $validResult['with_dynamic_default'] = $validResult['test_field'];
+        $validResult['email'] = 'test-default@example.com';
+        $fields['test_field']->set('default', $validResult['test_field']);
+        $fields['email']->set('default', $validResult['email']);
 
-      $definition = new InputDefinition();
-      $this->form = Form::fromArray($fields);
-      $this->form->configureInputDefinition($definition);
+        $definition = new InputDefinition();
+        $this->form = Form::fromArray($fields);
+        $this->form->configureInputDefinition($definition);
 
-      $input = new ArrayInput([], $definition);
-      $input->setInteractive(false);
-      $result = $this->form->resolveOptions($input, new NullOutput(), $this->getQuestionHelper());
-      $this->assertEquals($validResult, $result, 'Empty input passes');
+        $input = new ArrayInput([], $definition);
+        $input->setInteractive(false);
+        $result = $this->form->resolveOptions($input, new NullOutput(), $this->getQuestionHelper());
+        $this->assertEquals($validResult, $result, 'Empty input passes');
     }
 
     public function testCommandLineCommaSeparatedArrayOptions()
@@ -554,32 +611,32 @@ class FormTest extends TestCase
 
     public function testUrlField()
     {
-      $definition = new InputDefinition();
-      $this->form->configureInputDefinition($definition);
+        $definition = new InputDefinition();
+        $this->form->configureInputDefinition($definition);
 
-      $validResult = $this->validResult;
-      $validResult['url'] = 'https://example.com';
+        $validResult = $this->validResult;
+        $validResult['url'] = 'https://example.com';
 
-      $input = new ArgvInput([
-        'commandName',
-        '--test', $this->validString,
-        '--mail', $this->validMail,
-        '--url', 'https://example.com',
-      ], $definition);
-      $input->setInteractive(false);
-      $result = $this->form->resolveOptions($input, new NullOutput(), $this->getQuestionHelper());
-      $this->assertEquals($validResult, $result, 'URL input with valid URL passes');
+        $input = new ArgvInput([
+            'commandName',
+            '--test', $this->validString,
+            '--mail', $this->validMail,
+            '--url', 'https://example.com',
+        ], $definition);
+        $input->setInteractive(false);
+        $result = $this->form->resolveOptions($input, new NullOutput(), $this->getQuestionHelper());
+        $this->assertEquals($validResult, $result, 'URL input with valid URL passes');
 
-      $input = new ArgvInput([
-        'commandName',
-        '--test', $this->validString,
-        '--mail', $this->validMail,
-        '--url', 'example.com',
-      ], $definition);
-      $input->setInteractive(false);
-      $this->expectException(InvalidValueException::class);
-      $this->form->resolveOptions($input, new NullOutput(), $this->getQuestionHelper());
-      $this->assertEquals($validResult, $result, 'URL input with invalid URL fails');
+        $input = new ArgvInput([
+            'commandName',
+            '--test', $this->validString,
+            '--mail', $this->validMail,
+            '--url', 'example.com',
+        ], $definition);
+        $input->setInteractive(false);
+        $this->expectException(InvalidValueException::class);
+        $this->form->resolveOptions($input, new NullOutput(), $this->getQuestionHelper());
+        $this->assertEquals($validResult, $result, 'URL input with invalid URL fails');
     }
 
     public function testPresetInputOptions()
@@ -666,8 +723,6 @@ class FormTest extends TestCase
             '--mail', $this->validMail,
             '--file', $tmpFilename,
         ], $definition);
-
-        $validResult['file'] = '';
 
         $input->setInteractive(false);
         $result = $this->form->resolveOptions($input, new NullOutput(), $this->getQuestionHelper());

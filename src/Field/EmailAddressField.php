@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Platformsh\ConsoleForm\Field;
 
 class EmailAddressField extends Field
@@ -8,7 +10,7 @@ class EmailAddressField extends Field
     {
         parent::__construct($name, $config);
         $this->validators[] = function ($value) {
-            return filter_var($value, FILTER_VALIDATE_EMAIL) ? true : "Invalid email address: $value";
+            return filter_var($value, FILTER_VALIDATE_EMAIL) ? true : "Invalid email address: {$value}";
         };
     }
 }

@@ -1,23 +1,26 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Platformsh\ConsoleForm\Field;
 
+use Platformsh\ConsoleForm\Exception\MissingValueException;
 use Symfony\Component\Console\Input\InputOption;
+use Symfony\Component\Console\Question\Question;
 
 class ArrayField extends Field
 {
-    const SPLIT_PATTERN_COMMA_WHITESPACE = '/[,\s]+/';
-    const SPLIT_PATTERN_COMMA_NEWLINE = '/[,\r\n]+/';
-    const SPLIT_PATTERN_NEWLINE = '/[\r\n]+/';
+    public const SPLIT_PATTERN_COMMA_WHITESPACE = '/[,\s]+/';
 
-    public $default = [];
+    public const SPLIT_PATTERN_COMMA_NEWLINE = '/[,\r\n]+/';
 
-    protected $splitPattern = self::SPLIT_PATTERN_COMMA_WHITESPACE;
+    public const SPLIT_PATTERN_NEWLINE = '/[\r\n]+/';
 
-    /**
-     * {@inheritdoc}
-     */
-    public function normalize($value)
+    public mixed $default = [];
+
+    protected string $splitPattern = self::SPLIT_PATTERN_COMMA_WHITESPACE;
+
+    public function normalize(mixed $value): array
     {
         // If the value is an array of only one element, it might be a
         // comma-separated string provided to the command-line option. Extract
@@ -34,29 +37,56 @@ class ArrayField extends Field
         return parent::normalize($value);
     }
 
-    /**
-     * Split a comma or whitespace-separated string into an array.
-     *
-     * @param string $str
-     *
-     * @return array
-     */
-    private function split($str) {
-        return array_filter(preg_split($this->splitPattern, $str), 'strlen');
+    public function getAsQuestion(): Question
+    {
+        $question = new Question($this->getQuestionText(), $this->default ? implode(', ', $this->default) : null);
+        $question->setMaxAttempts($this->maxAttempts);
+        $question->setValidator(function ($value) {
+            if ($this->isEmpty($value) && $this->isRequired()) {
+                throw new MissingValueException("'{$this->name}' is required", $this);
+            }
+            $this->validate($value);
+
+            return $value;
+        });
+        $question->setAutocompleterValues($this->autoCompleterValues);
+
+        return $question;
     }
 
-    /**
-     * {@inheritdoc}
-     */
-    protected function getQuestionText()
+    public function matchesCondition(mixed $userValue, mixed $condition): bool
+    {
+        if (is_callable($condition)) {
+            return $condition($userValue);
+        }
+
+        return ! array_diff($userValue, $condition);
+    }
+
+    public function getOptionMode(): int
+    {
+        return InputOption::VALUE_IS_ARRAY | InputOption::VALUE_REQUIRED;
+    }
+
+    public function isEmpty(mixed $value): bool
+    {
+        return empty($value);
+    }
+
+    public function isRequired(): bool
+    {
+        return $this->required && empty($this->default);
+    }
+
+    protected function getQuestionText(): string
     {
         $text = $this->getQuestionHeader(false);
-        if (!empty($this->default)) {
+        if (! empty($this->default)) {
             $text .= "\n" . 'Default: <question>' . implode(', ', (array) $this->default) . '</question>';
         }
         if ($this->splitPattern === self::SPLIT_PATTERN_COMMA_NEWLINE || $this->splitPattern === self::SPLIT_PATTERN_COMMA_WHITESPACE) {
             $text .= "\nEnter comma-separated values";
-            if (!$this->isRequired()) {
+            if (! $this->isRequired()) {
                 $text .= ' (or leave this blank)';
             }
         }
@@ -66,38 +96,10 @@ class ArrayField extends Field
     }
 
     /**
-     * {@inheritdoc}
+     * Split a comma or whitespace-separated string into an array.
      */
-    public function matchesCondition($userValue, $condition)
+    private function split(string $str): array
     {
-        if (is_callable($condition)) {
-            return $condition($userValue);
-        }
-
-        return !array_diff($userValue, $condition);
-    }
-
-    /**
-     * {@inheritdoc}
-     */
-    public function getOptionMode()
-    {
-        return InputOption::VALUE_IS_ARRAY | InputOption::VALUE_REQUIRED;
-    }
-
-    /**
-     * {@inheritdoc}
-     */
-    public function isEmpty($value)
-    {
-        return empty($value);
-    }
-
-    /**
-     * {@inheritdoc}
-     */
-    public function isRequired()
-    {
-        return $this->required && empty($this->default);
+        return array_filter(preg_split($this->splitPattern, $str), 'strlen');
     }
 }

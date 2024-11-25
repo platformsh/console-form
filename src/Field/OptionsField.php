@@ -1,18 +1,23 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Platformsh\ConsoleForm\Field;
 
-use Platformsh\ConsoleForm\Exception\InvalidValueException;
 use Platformsh\ConsoleForm\Exception\MissingValueException;
 use Symfony\Component\Console\Question\ChoiceQuestion;
 
 class OptionsField extends Field
 {
-    protected $options = [];
-    protected $asChoice = true;
-    protected $allowOther = false;
-    protected $autoDescribe = true;
-    protected $chooseWithNumber = false;
+    protected array $options = [];
+
+    protected bool $asChoice = true;
+
+    protected bool $allowOther = false;
+
+    protected bool $autoDescribe = true;
+
+    protected bool $chooseWithNumber = false;
 
     /**
      * A callback used to calculate dynamic options.
@@ -24,9 +29,6 @@ class OptionsField extends Field
      */
     protected $optionsCallback;
 
-    /**
-     * {@inheritdoc}
-     */
     public function __construct($name, array $config = [])
     {
         parent::__construct($name, $config);
@@ -36,44 +38,27 @@ class OptionsField extends Field
             }
             $options = $this->validOptions();
 
-            return array_search($value, $options, true) !== false
-                ? true : "$value is not one of: " . implode(', ', $options);
+            return in_array($value, $options, true)
+                ? true : "{$value} is not one of: " . implode(', ', $options);
         };
     }
 
-    /**
-     * Return a list of valid option values.
-     *
-     * @return array
-     */
-    private function validOptions()
-    {
-        return $this->isNumeric() ? $this->options : array_keys($this->options);
-    }
-
-    /**
-     * {@inheritdoc}
-     */
-    public function matchesCondition($userValue, $condition)
+    public function matchesCondition(mixed $userValue, mixed $condition): bool
     {
         if (is_callable($condition)) {
             return $condition($userValue);
         }
 
         return is_array($condition)
-          ? in_array($userValue, $condition)
+          ? in_array($userValue, $condition, true)
           : $userValue === $condition;
     }
 
-    /**
-     * {@inheritdoc}
-     */
-    public function getAsQuestion()
+    public function getAsQuestion(): ChoiceQuestion|\Symfony\Component\Console\Question\Question
     {
         if ($this->asChoice) {
             $question = $this->getChoiceQuestion();
-        }
-        else {
+        } else {
             $question = parent::getAsQuestion();
             $question->setAutocompleterValues($this->options);
         }
@@ -81,10 +66,16 @@ class OptionsField extends Field
         return $question;
     }
 
-    /**
-     * {@inheritdoc}
-     */
-    protected function getChoiceQuestion()
+    public function onChange(array $previousValues): void
+    {
+        parent::onChange($previousValues);
+        if (isset($this->optionsCallback)) {
+            $callback = $this->optionsCallback;
+            $this->options = $callback($previousValues);
+        }
+    }
+
+    protected function getChoiceQuestion(): ChoiceQuestion
     {
         $numeric = $this->isNumeric();
         $text = $this->getQuestionHeader();
@@ -98,7 +89,7 @@ class OptionsField extends Field
         );
         $question->setPrompt($this->prompt);
         $question->setMaxAttempts($this->maxAttempts);
-        if (!$numeric) {
+        if (! $numeric) {
             $question->setAutocompleterValues(array_keys($this->options));
         }
         $question->setValidator(function ($userInput) use ($numeric) {
@@ -126,16 +117,13 @@ class OptionsField extends Field
         return $question;
     }
 
-    /**
-     * @return string
-     */
-    protected function getDescription()
+    protected function getDescription(): string
     {
         $description = parent::getDescription();
         $validOptions = $this->validOptions();
-        if (!empty($validOptions) && $this->autoDescribe) {
+        if (! empty($validOptions) && $this->autoDescribe) {
             $separator = count($validOptions) === 2 ? ' or ' : ', ';
-            $optionsString = "'" . implode("'$separator'", $this->validOptions()) . "'";
+            $optionsString = "'" . implode("'{$separator}'", $this->validOptions()) . "'";
             if (strlen($optionsString) < 255) {
                 $description .= ' (';
                 if ($this->allowOther) {
@@ -149,26 +137,20 @@ class OptionsField extends Field
     }
 
     /**
-     * {@inheritdoc}
+     * Return a list of valid option values.
      */
-    public function onChange(array $previousValues)
+    private function validOptions(): array
     {
-        parent::onChange($previousValues);
-        if (isset($this->optionsCallback)) {
-            $callback = $this->optionsCallback;
-            $this->options = $callback($previousValues);
-        }
+        return $this->isNumeric() ? $this->options : array_keys($this->options);
     }
 
     /**
      * Check if this is numeric, rather than associative.
-     *
-     * @return bool
      */
-    private function isNumeric()
+    private function isNumeric(): bool
     {
         foreach (array_keys($this->options) as $key) {
-            if (!is_int($key)) {
+            if (! is_int($key)) {
                 return false;
             }
         }

@@ -1,11 +1,14 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Platformsh\ConsoleForm\Exception;
 
 use Platformsh\ConsoleForm\Field\Field;
 
-class ConditionalFieldException extends FieldLevelException {
-    private $previousValues;
+class ConditionalFieldException extends FieldLevelException
+{
+    private array $previousValues;
 
     public function __construct($message, Field $field, array $previousValues)
     {
@@ -13,10 +16,7 @@ class ConditionalFieldException extends FieldLevelException {
         parent::__construct($message, $field);
     }
 
-    /**
-     * @return array
-     */
-    public function getPreviousValues()
+    public function getPreviousValues(): array
     {
         return $this->previousValues;
     }

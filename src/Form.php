@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Platformsh\ConsoleForm;
 
 use Platformsh\ConsoleForm\Exception\ConditionalFieldException;
@@ -14,18 +16,17 @@ use Symfony\Component\Console\Output\OutputInterface;
 
 class Form
 {
-    /** @var Field[] */
-    protected $fields = [];
+    /**
+     * @var Field[]
+     */
+    protected array $fields = [];
 
     /**
      * Add a field to the form.
      *
-     * @param Field $field
-     * @param string $key
-     *
      * @return $this
      */
-    public function addField(Field $field, $key = null)
+    public function addField(Field $field, string $key = null): static
     {
         $this->fields[$key] = $field;
 
@@ -34,14 +35,10 @@ class Form
 
     /**
      * Get a single form field.
-     *
-     * @param string $key
-     *
-     * @return Field|false
      */
-    public function getField($key)
+    public function getField(string $key): false|Field
     {
-        if (!isset($this->fields[$key])) {
+        if (! isset($this->fields[$key])) {
             return false;
         }
 
@@ -52,10 +49,8 @@ class Form
      * Create a form from an array of fields.
      *
      * @param Field[] $fields
-     *
-     * @return static
      */
-    public static function fromArray(array $fields)
+    public static function fromArray(array $fields): static
     {
         $form = new static();
         foreach ($fields as $key => $field) {
@@ -67,10 +62,8 @@ class Form
 
     /**
      * Add options to a Symfony Console input definition.
-     *
-     * @param InputDefinition $definition
      */
-    public function configureInputDefinition(InputDefinition $definition)
+    public function configureInputDefinition(InputDefinition $definition): void
     {
         foreach ($this->fields as $field) {
             if ($field->includeAsOption()) {
@@ -84,25 +77,21 @@ class Form
      *
      * @return Field[]
      */
-    public function getFields()
+    public function getFields(): array
     {
         return $this->fields;
     }
 
     /**
      * Validates command-line input, partially, without using interaction.
-     *
-     * @param InputInterface $input
-     *
-     * @return void
      */
-    public function validateInputBeforeInteraction(InputInterface $input)
+    public function validateInputBeforeInteraction(InputInterface $input): void
     {
         $values = [];
         foreach ($this->fields as $key => $field) {
             $field->onChange($values);
 
-            if (!$this->includeField($field, $values, true)) {
+            if (! $this->includeField($field, $values, true)) {
                 if ($field->getValueFromInput($input, false) !== null) {
                     throw new ConditionalFieldException('--' . $field->getOptionName() . ' is not applicable', $field, $values);
                 }
@@ -131,18 +120,13 @@ class Form
      *  - defaults
      *  - interactive questions
      *
-     * @param InputInterface $input
-     * @param OutputInterface $output
-     * @param QuestionHelper $helper
-     * @param Context|null $context
-     *
      * @throws InvalidValueException if any of the input was invalid.
      *
      * @return array
      *   An array of normalized field values. The array keys match those
      *   provided as the second argument to self::addField().
      */
-    public function resolveOptions(InputInterface $input, OutputInterface $output, QuestionHelper $helper, Context $context = null)
+    public function resolveOptions(InputInterface $input, OutputInterface $output, QuestionHelper $helper, Context $context = null): array
     {
         $context = $context ?: new Context();
         try {
@@ -157,7 +141,7 @@ class Form
         foreach ($this->fields as $key => $field) {
             $field->onChange($values);
 
-            if (!$this->includeField($field, $values)) {
+            if (! $this->includeField($field, $values)) {
                 if ($field->getValueFromInput($input, false) !== null) {
                     throw new ConditionalFieldException('--' . $field->getOptionName() . ' is not applicable', $field, $values);
                 }
@@ -172,7 +156,7 @@ class Form
                 // Get the value interactively.
                 $value = $helper->ask($input, $stdErr, $field->getAsQuestion());
                 $stdErr->writeln('');
-            } elseif ($field->isRequired() && !$field->hasDefault()) {
+            } elseif ($field->isRequired() && ! $field->hasDefault()) {
                 throw new MissingValueException('--' . $field->getOptionName() . ' is required', $field);
             }
 
@@ -189,24 +173,18 @@ class Form
 
     /**
      * Determine whether the field should be included.
-     *
-     * @param Field $field
-     * @param array $previousValues
-     * @param bool  $ignoreUnsetValues
-     *
-     * @return bool
      */
-    public function includeField(Field $field, array $previousValues, $ignoreUnsetValues = false)
+    public function includeField(Field $field, array $previousValues, bool $ignoreUnsetValues = false): bool
     {
         foreach ($field->getConditions() as $previousField => $condition) {
             $previousFieldObject = $this->getField($previousField);
-            if ($previousFieldObject === false || !isset($previousValues[$previousField])) {
+            if ($previousFieldObject === false || ! isset($previousValues[$previousField])) {
                 if ($ignoreUnsetValues) {
                     continue;
                 }
                 return false;
             }
-            if (!$previousFieldObject->matchesCondition($previousValues[$previousField], $condition)) {
+            if (! $previousFieldObject->matchesCondition($previousValues[$previousField], $condition)) {
                 return false;
             }
         }
@@ -217,20 +195,15 @@ class Form
     /**
      * Set a nested value in an array.
      *
-     * @see Copied from \Drupal\Component\Utility\NestedArray::setValue()
-     *
-     * @param array &$array
-     * @param array $parents
-     * @param mixed $value
-     * @param bool  $force
+     *@see Copied from \Drupal\Component\Utility\NestedArray::setValue()
      */
-    public static function setNestedArrayValue(array &$array, array $parents, $value, $force = false)
+    public static function setNestedArrayValue(array &$array, array $parents, mixed $value, bool $force = false): void
     {
         $ref = &$array;
         foreach ($parents as $parent) {
             // PHP auto-creates container arrays and NULL entries without error if $ref
             // is NULL, but throws an error if $ref is set, but not an array.
-            if ($force && isset($ref) && !is_array($ref)) {
+            if ($force && isset($ref) && ! is_array($ref)) {
                 $ref = [];
             }
             $ref = &$ref[$parent];

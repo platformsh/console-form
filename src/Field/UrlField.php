@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Platformsh\ConsoleForm\Field;
 
 class UrlField extends Field
@@ -8,7 +10,7 @@ class UrlField extends Field
     {
         parent::__construct($name, $config);
         $this->validators[] = function ($value) {
-            return parse_url($value, PHP_URL_HOST) ? true : "Invalid URL: $value";
+            return parse_url($value, PHP_URL_HOST) ? true : "Invalid URL: {$value}";
         };
     }
 }

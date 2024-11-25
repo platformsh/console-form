@@ -1,11 +1,14 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Platformsh\ConsoleForm\Exception;
 
 use Platformsh\ConsoleForm\Field\Field;
 
-abstract class FieldLevelException extends \RuntimeException {
-    protected $field;
+abstract class FieldLevelException extends \RuntimeException
+{
+    protected Field $field;
 
     public function __construct($message, Field $field)
     {
@@ -13,10 +16,8 @@ abstract class FieldLevelException extends \RuntimeException {
         parent::__construct($message);
     }
 
-    /**
-     * @return Field
-     */
-    public function getField() {
+    public function getField(): Field
+    {
         return $this->field;
     }
 }

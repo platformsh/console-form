@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Platformsh\ConsoleForm\Field;
 
 use Platformsh\ConsoleForm\Exception\InvalidValueException;
@@ -13,27 +15,13 @@ class BooleanField extends Field
     {
         parent::__construct($name, $config);
         // The default is true, unless a callback is set.
-        if (!isset($this->defaultCallback) && !isset($this->default)) {
+        if (! isset($this->defaultCallback) && ! isset($this->default)) {
             $this->default = $this->originalDefault = true;
         }
         $this->autoCompleterValues = ['true', 'false', 'yes', 'no'];
     }
 
-   /**
-     * {@inheritdoc}
-     */
-    protected function getQuestionText()
-    {
-        return rtrim($this->getQuestionHeader(false), '?')
-          . '? [default: <question>'
-          . ($this->default ? 'true' : 'false')
-          . '</question>] ';
-    }
-
-    /**
-     * {@inheritdoc}
-     */
-    public function isEmpty($value)
+    public function isEmpty(mixed $value): bool
     {
         // False is not empty.
         if ($value === false) {
@@ -43,26 +31,29 @@ class BooleanField extends Field
         return parent::isEmpty($value);
     }
 
-    /**
-     * {@inheritdoc}
-     */
-    protected function normalize($value)
+    protected function getQuestionText(): string
+    {
+        return rtrim($this->getQuestionHeader(false), '?')
+          . '? [default: <question>'
+          . ($this->default ? 'true' : 'false')
+          . '</question>] ';
+    }
+
+    protected function normalize(mixed $value): bool
     {
         if (is_bool($value)) {
             return $value;
-        }
-        elseif (preg_match('/^(0|false|no|n)$/i', $value)) {
+        } elseif (preg_match('/^(0|false|no|n)$/i', $value)) {
             return false;
-        }
-        elseif (preg_match('/^(1|true|yes|y)$/i', $value)) {
+        } elseif (preg_match('/^(1|true|yes|y)$/i', $value)) {
             return true;
         }
-        else {
-            throw new InvalidValueException(sprintf(
-                "Invalid value for '%s': %s (expected 1, 0, true, or false)",
-                $this->name,
-                $value
-            ), $this);
-        }
+
+        throw new InvalidValueException(sprintf(
+            "Invalid value for '%s': %s (expected 1, 0, true, or false)",
+            $this->name,
+            $value
+        ), $this);
+
     }
 }
